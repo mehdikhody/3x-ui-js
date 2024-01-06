@@ -1,6 +1,5 @@
 import type { AxiosInstance } from "axios";
 import { ProxyAgent } from "proxy-agent";
-import EventEmitter from "events";
 import urljoin from "url-join";
 import cache from "node-cache";
 import axios from "axios";
@@ -112,7 +111,7 @@ type InboundOptions = {
     sniffing: string;
 };
 
-export class XUI extends EventEmitter {
+export class XUI {
     private readonly axios: AxiosInstance;
     private readonly cache: cache;
     private cookie: string;
@@ -124,7 +123,6 @@ export class XUI extends EventEmitter {
         private readonly password: string,
         private readonly protocol: "http" | "https" = "http",
     ) {
-        super();
         this.cache = new cache({ stdTTL: 5 });
         this.cookie = "";
 
@@ -138,7 +136,6 @@ export class XUI extends EventEmitter {
 
     private async login() {
         if (this.cookie.length) {
-            this.emit("login:cached");
             return;
         }
 
@@ -159,12 +156,10 @@ export class XUI extends EventEmitter {
             !response.data.success ||
             !response.headers["set-cookie"]
         ) {
-            this.emit("login:failed");
             throw new Error("Failed to initialize session.");
         }
 
         this.cookie = response.headers["set-cookie"][0];
-        this.emit("login:success");
     }
 
     private async get<T>(path: string, data?: unknown) {
@@ -204,7 +199,6 @@ export class XUI extends EventEmitter {
 
     async getInbounds() {
         if (this.cache.get("inbounds")) {
-            this.emit("inbounds:cached");
             return this.cache.get("inbounds") as Inbound[];
         }
 
@@ -216,13 +210,11 @@ export class XUI extends EventEmitter {
             this.cache.set(`inbound:${inbound.id}`, inbound);
         });
 
-        this.emit("inbounds:loaded");
         return inbounds;
     }
 
     async getInbound(id: number): Promise<Inbound | null> {
         if (this.cache.get(`inbound:${id}`)) {
-            this.emit("inbound:cached");
             return this.cache.get(`inbound:${id}`) as Inbound;
         }
 
@@ -231,10 +223,8 @@ export class XUI extends EventEmitter {
         try {
             const inbound = await this.get<Inbound>(`/get/${id}`);
             this.cache.set(`inbound:${id}`, inbound);
-            this.emit("inbound:loaded");
             return inbound;
         } catch (error) {
-            this.emit("inbound:not-found");
             return null;
         }
     }
@@ -244,7 +234,6 @@ export class XUI extends EventEmitter {
         const inbound = await this.post<Inbound>("/add", options);
         this.cache.del("inbounds");
         this.cache.set(`inbound:${inbound.id}`, inbound);
-        this.emit("inbound:added");
         return inbound;
     }
 
@@ -255,13 +244,11 @@ export class XUI extends EventEmitter {
         if (!inbound) throw new Error("Inbound not found.");
 
         options = { ...inbound, ...options };
-
         const updated = await this.post<Inbound>(`/update/${id}`, options);
         this.cache.del("inbounds");
         this.cache.set(`inbound:${inbound.id}`, updated);
 
-        this.emit("inbound:updated");
-        return inbound;
+        return updated;
     }
 
     async resetInboundsStat() {
@@ -270,10 +257,8 @@ export class XUI extends EventEmitter {
         try {
             await this.post(`/resetAllTraffics`);
             this.cache.flushAll();
-            this.emit("inbounds:reset");
         } catch (error) {
             // nothing
-            this.emit("inbounds:reset-failed");
         }
     }
 
@@ -283,10 +268,8 @@ export class XUI extends EventEmitter {
         try {
             await this.post(`/resetAllClientTraffics/${id}`);
             this.cache.del(`inbound:${id}`);
-            this.emit("inbound:reset");
         } catch (error) {
             // nothing
-            this.emit("inbound:reset-failed");
         }
     }
 
@@ -296,16 +279,13 @@ export class XUI extends EventEmitter {
         try {
             await this.post(`/del/${id}`);
             this.cache.del(`inbound:${id}`);
-            this.emit("inbound:deleted");
         } catch (error) {
             // nothing
-            this.emit("inbound:delete-failed");
         }
     }
 
     async getClients() {
         if (this.cache.get("clients")) {
-            this.emit("clients:cached");
             return this.cache.get("clients") as Client[];
         }
 
@@ -318,26 +298,22 @@ export class XUI extends EventEmitter {
             this.cache.set(`client:${client.email}`, client);
         });
 
-        this.emit("clients:loaded");
         return clients;
     }
 
     async getClient(email: string): Promise<Client | null> {
         if (this.cache.get(`client:${email}`)) {
-            this.emit("client:cached");
             return this.cache.get(`client:${email}`) as Client;
         }
 
         await this.login();
         const client = await this.get<Client>(`/getClientTraffics/${email}`);
         this.cache.set(`client:${email}`, client);
-        this.emit("client:loaded");
         return client;
     }
 
     async getClientByClientId(id: string) {
         if (this.cache.get(`client:${id}`)) {
-            this.emit("client:cached");
             return this.cache.get(`client:${id}`) as Client;
         }
 
@@ -348,13 +324,11 @@ export class XUI extends EventEmitter {
         if (!client) return null;
 
         this.cache.set(`client:${id}`, client);
-        this.emit("client:loaded");
         return client;
     }
 
     async getClientIps(email: string) {
         if (this.cache.get(`client:${email}:ips`)) {
-            this.emit("client:ips:cached");
             return this.cache.get(`client:${email}:ips`) as string[];
         }
 
@@ -366,17 +340,14 @@ export class XUI extends EventEmitter {
 
             const ips = data.split(/,|\s/gm).filter((ip) => ip.length);
             this.cache.set(`client:${email}:ips`, ips);
-            this.emit("client:ips:loaded");
             return ips;
         } catch (error) {
-            this.emit("client:ips:not-found");
             return [];
         }
     }
 
     async getClientOptions(email: string) {
         if (this.cache.get(`client:${email}:options`)) {
-            this.emit("client:options:cached");
             return this.cache.get(`client:${email}:options`) as ClientOptions;
         }
 
@@ -394,17 +365,14 @@ export class XUI extends EventEmitter {
             );
 
             this.cache.set(`client:${email}:options`, options);
-            this.emit("client:options:loaded");
             return options;
         } catch (error) {
-            this.emit("client:options:not-found", error);
             return null;
         }
     }
 
     async getClientOptionsByClientId(id: string) {
         if (this.cache.get(`client:${id}:options`)) {
-            this.emit("client:options:cached");
             return this.cache.get(`client:${id}:options`) as ClientOptions;
         }
 
@@ -424,10 +392,8 @@ export class XUI extends EventEmitter {
                 });
 
             this.cache.set(`client:${id}:options`, options);
-            this.emit("client:options:loaded");
             return options;
         } catch (error) {
-            this.emit("client:options:not-found");
             return null;
         }
     }
@@ -442,7 +408,6 @@ export class XUI extends EventEmitter {
         });
 
         this.cache.flushAll();
-        this.emit("client:added");
     }
 
     async addClients(inboundId: number, clients: ClientOptions[]) {
@@ -453,7 +418,6 @@ export class XUI extends EventEmitter {
         });
 
         this.cache.flushAll();
-        this.emit("clients:added");
     }
 
     async updateClient(
@@ -476,7 +440,6 @@ export class XUI extends EventEmitter {
         });
 
         this.cache.flushAll();
-        this.emit("client:updated");
     }
 
     async resetClientIps(email: string) {
@@ -485,9 +448,8 @@ export class XUI extends EventEmitter {
         try {
             await this.post(`/clearClientIps/${email}`);
             this.cache.del(`client:${email}:ips`);
-            this.emit("client:ips:reset");
         } catch (error) {
-            this.emit("client:ips:reset-failed");
+            // nothing
         }
     }
 
@@ -497,9 +459,8 @@ export class XUI extends EventEmitter {
         try {
             await this.post(`/${inboundId}/resetClientTraffic/${email}`);
             this.cache.flushAll();
-            this.emit("client:reset");
         } catch (error) {
-            this.emit("client:reset-failed");
+            // nothing
         }
     }
 
@@ -509,9 +470,8 @@ export class XUI extends EventEmitter {
         try {
             await this.post(`/${inboundId}/delClient/${email}`);
             this.cache.flushAll();
-            this.emit("client:deleted");
         } catch (error) {
-            this.emit("client:delete-failed");
+            // nothing
         }
     }
 
@@ -521,9 +481,8 @@ export class XUI extends EventEmitter {
         try {
             await this.post("/delDepletedClients");
             this.cache.flushAll();
-            this.emit("clients:deleted");
         } catch (error) {
-            this.emit("clients:delete-failed");
+            // nothing
         }
     }
 
@@ -533,15 +492,13 @@ export class XUI extends EventEmitter {
         try {
             await this.post(`/delDepletedClients/${inboundId}`);
             this.cache.flushAll();
-            this.emit("clients:deleted");
         } catch (error) {
-            this.emit("clients:delete-failed");
+            // nothing
         }
     }
 
     async getOnlineClients() {
         if (this.cache.get("clients:online")) {
-            this.emit("clients:online:cached");
             return this.cache.get("clients:online") as string[];
         }
 
