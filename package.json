@@ -32,5 +32,9 @@
         "proxy-agent": "^6.3.1",
         "qs": "^6.11.2",
         "url-join": "^5.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mehdikhody/3x-ui-js"
     }
 }

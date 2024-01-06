@@ -303,19 +303,6 @@ export class XUI extends EventEmitter {
         }
     }
 
-    async getClient(email: string): Promise<Client | null> {
-        if (this.cache.get(`client:${email}`)) {
-            this.emit("client:cached");
-            return this.cache.get(`client:${email}`) as Client;
-        }
-
-        await this.login();
-        const client = await this.get<Client>(`/getClientTraffics/${email}`);
-        this.cache.set(`client:${email}`, client);
-        this.emit("client:loaded");
-        return client;
-    }
-
     async getClients() {
         if (this.cache.get("clients")) {
             this.emit("clients:cached");
@@ -333,6 +320,36 @@ export class XUI extends EventEmitter {
 
         this.emit("clients:loaded");
         return clients;
+    }
+
+    async getClient(email: string): Promise<Client | null> {
+        if (this.cache.get(`client:${email}`)) {
+            this.emit("client:cached");
+            return this.cache.get(`client:${email}`) as Client;
+        }
+
+        await this.login();
+        const client = await this.get<Client>(`/getClientTraffics/${email}`);
+        this.cache.set(`client:${email}`, client);
+        this.emit("client:loaded");
+        return client;
+    }
+
+    async getClientByClientId(id: string) {
+        if (this.cache.get(`client:${id}`)) {
+            this.emit("client:cached");
+            return this.cache.get(`client:${id}`) as Client;
+        }
+
+        const options = await this.getClientOptionsByClientId(id);
+        if (!options) return null;
+
+        const client = await this.getClient(options.email);
+        if (!client) return null;
+
+        this.cache.set(`client:${id}`, client);
+        this.emit("client:loaded");
+        return client;
     }
 
     async getClientIps(email: string) {
@@ -538,7 +555,7 @@ export class XUI extends EventEmitter {
         }
     }
 
-    async exportData() {
+    async exportDatabase() {
         await this.login();
         const data = await this.get<string>("/createbackup");
         return data;
