@@ -4,12 +4,9 @@
         "target": "ESNext",
         "moduleResolution": "Node10",
         "outDir": "build",
+        "rootDirs": ["src"],
         "esModuleInterop": true,
-        "resolveJsonModule": true,
-        "allowSyntheticDefaultImports": true,
         "declaration": true,
-        "lib": ["ESNext"],
-        "baseUrl": ".",
-        "rootDir": "."
+        "lib": ["ESNext"]
     }
 }
