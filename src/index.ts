@@ -14,6 +14,7 @@ type Client = {
     down: number;
     expiryTime: number;
     total: number;
+    reset: number;
 };
 
 type ClientOptionsForVmess = {

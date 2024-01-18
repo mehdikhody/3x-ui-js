@@ -31,6 +31,17 @@ const clientOptions = await panel.getClientOptions("email");
 const onlines = await panel.getOnlineClients();
 ```
 
+## Proxy
+
+We are using undrelying proxy agent to connect to the panel. Which proxy is used for each HTTP request is determined by the `HTTP_PROXY` and `HTTPS_PROXY` environment variables.
+
+See `proxy-agent` [documentation](https://www.npmjs.com/package/proxy-agent) for more information.
+
+```env
+HTTP_PROXY="http://proxy-server-over-tcp.com:3128"
+HTTPS_PROXY="https://proxy-server-over-tls.com:3129"
+```
+
 ## API
 
 ### `getInbounds()`
