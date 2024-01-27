@@ -123,8 +123,9 @@ export class XUI {
         private readonly username: string,
         private readonly password: string,
         private readonly protocol: "http" | "https" = "http",
+        private readonly cacheTTL: number = 5,
     ) {
-        this.cache = new cache({ stdTTL: 5 });
+        this.cache = new cache({ stdTTL: cacheTTL });
         this.cookie = "";
 
         this.axios = axios.create({
