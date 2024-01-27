@@ -363,7 +363,7 @@ export class XUI {
 
             const options = JSON.parse(inbound.settings).clients.find(
                 (client: ClientOptions) => client.email === email,
-            );
+            ) as ClientOptions;
 
             this.cache.set(`client:${email}:options`, options);
             return options;
