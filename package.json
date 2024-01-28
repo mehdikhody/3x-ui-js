@@ -1,6 +1,6 @@
 {
     "name": "3x-ui",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "type": "module",
     "main": "build/index.js",
     "types": "build/index.d.ts",
@@ -31,7 +31,8 @@
         "node-cache": "^5.1.2",
         "proxy-agent": "^6.3.1",
         "qs": "^6.11.2",
-        "url-join": "^5.0.0"
+        "url-join": "^5.0.0",
+        "winston": "^3.11.0"
     },
     "repository": {
         "type": "git",

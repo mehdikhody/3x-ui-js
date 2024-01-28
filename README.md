@@ -16,19 +16,20 @@ npm install 3x-ui
 First of all, you need to import the package:
 
 ```javascript
-import { XUI } from "3x-ui";
+import { Panel } from "3x-ui";
 ```
 
 Then you can use the functions:
 
 ```javascript
-const panel = new XUI("localhost", 2053, "username", "password");
+const local = new Panel("http://localhost:2053");
+const api = await local.login("username", "password");
 
-const inbounds = await panel.getInbounds();
-const clients = await panel.getClients();
-const clientStat = await panel.getClient("email");
-const clientOptions = await panel.getClientOptions("email");
-const onlines = await panel.getOnlineClients();
+const inbounds = await api.getInbounds();
+const clients = await api.getClients();
+const clientStat = await api.getClient("email or uuid or password");
+const clientOptions = await api.getClientOptions("email or uuid or password");
+const onlines = await api.getOnlineClients();
 ```
 
 ## Proxy
@@ -49,7 +50,7 @@ HTTPS_PROXY="https://proxy-server-over-tls.com:3129"
 This function will return all inbounds in an array.
 
 ```javascript
-const inbounds = await panel.getInbounds();
+const inbounds = await api.getInbounds();
 ```
 
 ### `getInbound(id: number)`
@@ -57,7 +58,7 @@ const inbounds = await panel.getInbounds();
 This function will return an inbound with the given id.
 
 ```javascript
-const inbound = await panel.getInbound(1);
+const inbound = await api.getInbound(1);
 
 // {
 //     id: 1,
@@ -85,7 +86,7 @@ const inbound = await panel.getInbound(1);
 This function will add a new inbound with the given options.
 
 ```javascript
-const inbound = await panel.addInbound({
+const inbound = await api.addInbound({
     enable: true,
     remark: "New inbound",
     listen: "",
@@ -118,7 +119,7 @@ const inbound = await panel.addInbound({
 This function will update an inbound with the given id and options.
 
 ```javascript
-const updatedInbound = await panel.updateInbound(1, {
+const updatedInbound = await api.updateInbound(1, {
     remark: "Updated inbound",
 });
 ```
@@ -128,7 +129,7 @@ const updatedInbound = await panel.updateInbound(1, {
 This function will reset all inbounds' stats.
 
 ```javascript
-await panel.resetInboundsStat();
+await api.resetInboundsStat();
 ```
 
 ### `resetInboundStat(id: number)`
@@ -136,7 +137,7 @@ await panel.resetInboundsStat();
 This function will reset an inbound's stats with the given id.
 
 ```javascript
-await panel.resetInboundStat(1);
+await api.resetInboundStat(1);
 ```
 
 ### `deleteInbound(id: number)`
@@ -144,7 +145,7 @@ await panel.resetInboundStat(1);
 This function will delete an inbound with the given id.
 
 ```javascript
-await panel.deleteInbound(1);
+await api.deleteInbound(1);
 ```
 
 ### `getClients()`
@@ -152,7 +153,7 @@ await panel.deleteInbound(1);
 This function will return all clients in an array.
 
 ```javascript
-const clients = await panel.getClients();
+const clients = await api.getClients();
 ```
 
 ### `getClient(email: string)`
@@ -160,29 +161,7 @@ const clients = await panel.getClients();
 This function will return a client with the given email.
 
 ```javascript
-const client = await panel.getClient("email");
-
-// {
-//     id: 3,
-//     inboundId: 1,
-//     enable: true,
-//     email: "email",
-//     up: 0,
-//     down: 0,
-//     expiryTime: 1682864675944,
-//     total: 42949672960,
-// }
-```
-
-### `getClientByClientId(id: string)`
-
-This function will return a client with the given id.
-In `vmess` and `vless` id `id` is the client `uuid` and in `trojan` id is the client `password` and in `shadowsocks` id is the client `email`.
-
-```javascript
-const client = await panel.getClientByClientId(
-    "95e4e7bb-7796-47e7-e8a7-f4055194f776",
-);
+const client = await api.getClient("email or uuid or password");
 
 // {
 //     id: 3,
@@ -201,7 +180,7 @@ const client = await panel.getClientByClientId(
 This function will return all client's ips with the given email.
 
 ```javascript
-const clientIps = await panel.getClientIps("email");
+const clientIps = await api.getClientIps("email");
 
 // ["127.0.0.1"]
 ```
@@ -211,30 +190,7 @@ const clientIps = await panel.getClientIps("email");
 This function will return all client's options with the given email.
 
 ```javascript
-const clientOptions = await panel.getClientOptions("email");
-
-// {
-//     id: "95e4e7bb-7796-47e7-e8a7-f4055194f776",
-//     alterId: 0,
-//     email: "email",
-//     limitIp: 2,
-//     totalGB: 42949672960,
-//     expiryTime: 1682864675944,
-//     enable: true,
-//     tgId: "",
-//     subId: "",
-// }
-```
-
-### `getClientOptionsByClientId(id: string)`
-
-This function will return all client's options with the given id.
-In `vmess` and `vless` id `id` is the client `uuid` and in `trojan` id is the client `password` and in `shadowsocks` id is the client `email`.
-
-```javascript
-const clientOptions = await panel.getClientOptionsByClientId(
-    "95e4e7bb-7796-47e7-e8a7-f4055194f776",
-);
+const clientOptions = await api.getClientOptions("email or uuid or password");
 
 // {
 //     id: "95e4e7bb-7796-47e7-e8a7-f4055194f776",
@@ -254,7 +210,7 @@ const clientOptions = await panel.getClientOptionsByClientId(
 This function will add a new client with the given options.
 
 ```javascript
-const client = await panel.addClient(1, {
+const client = await api.addClient(1, {
     alterId: 0,
     email: "email",
     enable: true,
@@ -276,7 +232,7 @@ This function will add new clients with the given options.
 This function will update a client with the given client id.
 
 ```javascript
-const updatedClient = await panel.updateClient(
+const updatedClient = await api.updateClient(
     1,
     "95e4e7bb-7796-47e7-e8a7-f4055194f776",
     {
@@ -301,7 +257,7 @@ const updatedClient = await panel.updateClient(
 This function will reset all client's ips with the given email.
 
 ```javascript
-await panel.resetClientIps("email");
+await api.resetClientIps("email");
 ```
 
 ### `resetClientStat(inboundId: number, email: string)`
@@ -309,7 +265,7 @@ await panel.resetClientIps("email");
 This function will reset a client's stat with the given email.
 
 ```javascript
-await panel.resetClientStat(1, "email");
+await api.resetClientStat(1, "email");
 ```
 
 ### `deleteClient(inboundId: number, email: string)`
@@ -317,7 +273,7 @@ await panel.resetClientStat(1, "email");
 This function will delete a client with the given email.
 
 ```javascript
-await panel.deleteClient(1, "email");
+await api.deleteClient(1, "email");
 ```
 
 ### `deleteDepletedClients()`
@@ -325,7 +281,7 @@ await panel.deleteClient(1, "email");
 This function will delete all clients that have depleted their traffic.
 
 ```javascript
-await panel.deleteDepletedClients();
+await api.deleteDepletedClients();
 ```
 
 ### `deleteInboundDepletedClients(inboundId: number)`
@@ -333,7 +289,7 @@ await panel.deleteDepletedClients();
 This function will delete all clients of an inbound that have depleted their traffic.
 
 ```javascript
-await panel.deleteInboundDepletedClients(1);
+await api.deleteInboundDepletedClients(1);
 ```
 
 ### `getOnlineClients()`
@@ -351,5 +307,5 @@ const onlineClients = await panel.getOnlineClients();
 This function will export all data via Telegram bot.
 
 ```javascript
-await panel.exportDatabase();
+await api.exportDatabase();
 ```
