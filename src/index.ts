@@ -1,3 +1,2 @@
-export type * from "./types";
-export * from "./core/panel";
-export * from "./core/api";
+export * from "./types";
+export * from "./panel";
