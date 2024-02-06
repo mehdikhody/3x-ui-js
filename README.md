@@ -23,6 +23,7 @@ Then you can use the functions:
 
 ```javascript
 const api = new Panel("http://username:password@localhost:2053");
+api.debug = true;
 
 const inbounds = await api.getInbounds();
 const clientStat = await api.getClient("email or uuid or password");
