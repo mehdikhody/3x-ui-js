@@ -23,7 +23,8 @@ Then you can use the functions:
 
 ```javascript
 const api = new Panel("http://username:password@localhost:2053");
-api.debug = true;
+api.debug = true; // Enables debug mode
+api.stdTTL = 60; // 1 minute cache time
 
 const inbounds = await api.getInbounds();
 const clientStat = await api.getClient("email or uuid or password");
