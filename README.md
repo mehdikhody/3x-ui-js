@@ -22,11 +22,9 @@ import { Panel } from "3x-ui";
 Then you can use the functions:
 
 ```javascript
-const local = new Panel("http://localhost:2053");
-const api = await local.login("username", "password");
+const api = new Panel("http://username:password@localhost:2053");
 
 const inbounds = await api.getInbounds();
-const clients = await api.getClients();
 const clientStat = await api.getClient("email or uuid or password");
 const clientOptions = await api.getClientOptions("email or uuid or password");
 const onlines = await api.getOnlineClients();
@@ -148,14 +146,6 @@ This function will delete an inbound with the given id.
 await api.deleteInbound(1);
 ```
 
-### `getClients()`
-
-This function will return all clients in an array.
-
-```javascript
-const clients = await api.getClients();
-```
-
 ### `getClient(email: string)`
 
 This function will return a client with the given email.
@@ -232,13 +222,9 @@ This function will add new clients with the given options.
 This function will update a client with the given client id.
 
 ```javascript
-const updatedClient = await api.updateClient(
-    1,
-    "95e4e7bb-7796-47e7-e8a7-f4055194f776",
-    {
-        email: "updatedEmail",
-    },
-);
+const updatedClient = await api.updateClient(1, "95e4e7bb-7796-47e7-e8a7-f4055194f776", {
+    email: "updatedEmail",
+});
 
 // {
 //     id: 3,

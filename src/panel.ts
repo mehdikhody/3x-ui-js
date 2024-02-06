@@ -152,16 +152,17 @@ export class Panel {
                 clients: T.ClientOptions[];
             };
 
-            if (!settings) return;
-            settings.clients.map((options) => {
-                let clientId: string = "";
-                if ("id" in options) clientId = options.id;
-                if ("password" in options) clientId = options.password;
+            if (settings && settings.clients) {
+                settings.clients.map((options) => {
+                    let clientId: string = "";
+                    if ("id" in options) clientId = options.id;
+                    if ("password" in options) clientId = options.password;
 
-                this.cache.set(`client:options:${options.email}`, options);
-                this.cache.set(`client:id:${options.email}`, clientId);
-                this.cache.set(`client:options:${clientId}`, options);
-            });
+                    this.cache.set(`client:options:${options.email}`, options);
+                    this.cache.set(`client:id:${options.email}`, clientId);
+                    this.cache.set(`client:options:${clientId}`, options);
+                });
+            }
         }
 
         if (inbound.clientStats) {
