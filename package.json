@@ -1,5 +1,6 @@
 {
     "name": "3x-ui",
+    "description": "This is an interface for 3x-ui panel. It will help developers to create, edit and delete inbounds and clients in a simple way.",
     "version": "1.4",
     "type": "module",
     "main": "build/index.js",
@@ -34,6 +35,12 @@
         "url-join": "^5.0.0",
         "winston": "^3.11.0"
     },
+    "keywords": [
+        "xray",
+        "x-ui",
+        "3x-ui",
+        "3x-ui-js"
+    ],
     "repository": {
         "type": "git",
         "url": "https://github.com/mehdikhody/3x-ui-js"
