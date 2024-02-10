@@ -31,7 +31,7 @@ export class Panel {
         this.logger.silent = true;
 
         this.cache = new cache();
-        this.cache.options.stdTTL = 60;
+        this.cache.options.stdTTL = 10;
 
         this.axios = axios.create({
             baseURL: urljoin(`${this.protocol}://${this.host}:${this.port}`, this.path),
