@@ -1,6 +1,6 @@
-import type * as T from "./types";
+import type * as T from "./types.js";
 import { ProxyAgent } from "proxy-agent";
-import { createLogger } from "./logger";
+import { createLogger } from "./logger.js";
 import qs from "qs";
 import urljoin from "url-join";
 import axios from "axios";
