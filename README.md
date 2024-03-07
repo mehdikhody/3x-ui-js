@@ -1,6 +1,8 @@
 # 3x-ui Node.js SDK
 
-The 3x-ui Node.js SDK is a JavaScript library designed to facilitate communication with the 3x-ui panel, which runs Xray Core for proxy services. This SDK empowers JavaScript developers to create bots and websites for both commercial and non-commercial services, providing simplicity, abstraction around the API, caching for improved performance, and mutex for asynchronous safety.
+The 3x-ui is a JavaScript library designed to facilitate communication with the [3x-ui panel](https://github.com/MHSanaei/3x-ui), which runs Xray Core for proxy services. This SDK empowers JavaScript developers to create bots and websites for both commercial and non-commercial uses, providing simplicity, abstraction around the API, caching for improved performance, and mutex for asynchronous safety.
+
+This package is developed based on [MHSanaei Postman Collection](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#9cac8101-017e-4415-94e2-d30f4dcf49de) and you can check it out for more information.
 
 ### Features
 
