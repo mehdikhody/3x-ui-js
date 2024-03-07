@@ -111,12 +111,12 @@ export class Panel {
             })
             .catch(() => {});
 
+        this.mutex.unlock();
         if (!response || response.status !== 200 || !response.data.success) {
             this.logger.error(`${path} have failed.`);
             throw new Error(`${path} have failed.`);
         }
 
-        this.mutex.unlock();
         return response.data.obj as T;
     }
 
@@ -138,12 +138,12 @@ export class Panel {
             })
             .catch(() => {});
 
+        this.mutex.unlock();
         if (!response || response.status !== 200 || !response.data.success) {
             this.logger.error(`${path} have failed.`);
             throw new Error(`${path} have failed.`);
         }
 
-        this.mutex.unlock();
         return response.data.obj as T;
     }
 
