@@ -1,6 +1,7 @@
 import type * as T from "./types.js";
 import { ProxyAgent } from "proxy-agent";
 import { createLogger } from "./logger.js";
+import { Mutex } from "./mutex.js";
 import qs from "qs";
 import urljoin from "url-join";
 import axios from "axios";
@@ -14,8 +15,9 @@ export class Panel {
     readonly username: string;
     private readonly password: string;
     private readonly logger;
-    private readonly cache;
+    private readonly cache = new cache();
     private readonly axios;
+    private readonly mutex = new Mutex();
     private cookie: string = "";
 
     constructor(uri: string) {
@@ -29,8 +31,6 @@ export class Panel {
 
         this.logger = createLogger(`[${this.host}][${this.username}]`);
         this.logger.silent = true;
-
-        this.cache = new cache();
         this.cache.options.stdTTL = 10;
 
         this.axios = axios.create({
@@ -94,6 +94,7 @@ export class Panel {
     }
 
     private async get<T>(path: string, params?: unknown) {
+        await this.mutex.lock();
         await this.login();
 
         const url = urljoin("/panel/api/inbounds", path);
@@ -115,10 +116,12 @@ export class Panel {
             throw new Error(`${path} have failed.`);
         }
 
+        this.mutex.unlock();
         return response.data.obj as T;
     }
 
     private async post<T>(path: string, params?: unknown) {
+        await this.mutex.lock();
         await this.login();
 
         const url = urljoin("/panel/api/inbounds", path);
@@ -140,6 +143,7 @@ export class Panel {
             throw new Error(`${path} have failed.`);
         }
 
+        this.mutex.unlock();
         return response.data.obj as T;
     }
 
