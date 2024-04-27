@@ -215,7 +215,7 @@ export class Panel {
         this.logger.debug(`Adding inbound ${options.remark}.`);
 
         const inbound = await this.post<T.Inbound>("/add", options);
-        this.cache.flushAll();
+        this.flushCache();
 
         this.logger.info(`Inbound ${inbound.remark} added.`);
         return inbound;
@@ -229,7 +229,7 @@ export class Panel {
 
         options = { ...inbound, ...options };
         const updated = await this.post<T.Inbound>(`/update/${id}`, options);
-        this.cache.flushAll();
+        this.flushCache();
 
         this.logger.info(`Inbound ${id} updated.`);
         return updated;
@@ -238,19 +238,19 @@ export class Panel {
     async resetInboundsStat() {
         await this.post(`/resetAllTraffics`).catch(() => {});
         this.logger.debug("Inbounds stat reseted.");
-        this.cache.flushAll();
+        this.flushCache();
     }
 
     async resetInboundStat(id: number) {
         await this.post(`/resetAllClientTraffics/${id}`).catch(() => {});
         this.logger.debug(`Inbound ${id} stat reseted.`);
-        this.cache.flushAll();
+        this.flushCache();
     }
 
     async deleteInbound(id: number) {
         await this.post(`/del/${id}`).catch(() => {});
         this.logger.debug(`Inbound ${id} deleted.`);
-        this.cache.flushAll();
+        this.flushCache();
     }
 
     async getClient(email: string) {
@@ -300,7 +300,7 @@ export class Panel {
             }),
         });
 
-        this.cache.flushAll();
+        this.flushCache();
         this.logger.debug(`Client ${options.email} added.`);
     }
 
@@ -310,7 +310,7 @@ export class Panel {
             settings: JSON.stringify({ clients }),
         });
 
-        this.cache.flushAll();
+        this.flushCache();
         this.logger.debug(`${clients.length} clients added.`);
     }
 
@@ -333,7 +333,7 @@ export class Panel {
             }),
         });
 
-        this.cache.flushAll();
+        this.flushCache();
         this.logger.debug(`Client ${clientId} updated.`);
     }
 
@@ -363,25 +363,25 @@ export class Panel {
 
     async resetClientStat(inboundId: number, email: string) {
         await this.post(`/${inboundId}/resetClientTraffic/${email}`).catch(() => {});
-        this.cache.flushAll();
+        this.flushCache();
         this.logger.debug(`Client ${email} stat reseted.`);
     }
 
     async deleteClient(inboundId: number, email: string) {
         await this.post(`/${inboundId}/delClient/${email}`).catch(() => {});
-        this.cache.flushAll();
+        this.flushCache();
         this.logger.debug(`Client ${email} deleted.`);
     }
 
     async deleteDepletedClients() {
         await this.post("/delDepletedClients").catch(() => {});
-        this.cache.flushAll();
+        this.flushCache();
         this.logger.debug(`Depleted clients deleted.`);
     }
 
     async deleteInboundDepletedClients(inboundId: number) {
         await this.post(`/delDepletedClients/${inboundId}`).catch(() => {});
-        this.cache.flushAll();
+        this.flushCache();
         this.logger.debug(`Depleted clients deleted.`);
     }
 
