@@ -178,6 +178,11 @@ export class Panel {
         }
     }
 
+    async flushCache() {
+        this.cache.flushStats();
+        this.cache.flushAll();
+    }
+
     async getInbounds() {
         if (this.cache.get("inbounds")) {
             this.logger.debug("Inbounds loaded from cache.");
