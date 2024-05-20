@@ -136,7 +136,9 @@ export class Panel {
                     Cookie: this.cookie,
                 },
             })
-            .catch(() => {});
+            .catch((err) => {
+                this.logger.error(err);
+            });
 
         this.mutex.unlock();
         if (!response || response.status !== 200 || !response.data.success) {
@@ -316,7 +318,7 @@ export class Panel {
 
     async updateClient(inboundId: number, clientId: string, options: Partial<T.ClientOptions>) {
         await this.getInbound(inboundId);
-        const defaultOptions = this.getClientOptions(clientId);
+        const defaultOptions = await this.getClientOptions(clientId);
         if (!defaultOptions) {
             throw new Error("Client not found to be updated.");
         }
