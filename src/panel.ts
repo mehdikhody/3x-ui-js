@@ -369,10 +369,17 @@ export class Panel {
         this.logger.debug(`Client ${email} stat reseted.`);
     }
 
-    async deleteClient(inboundId: number, email: string) {
-        await this.post(`/${inboundId}/delClient/${email}`).catch(() => {});
+    async deleteClient(inboundId: number, id: string) {
+        const options = await this.getClientOptions(id);
+        if (!options) return;
+
+        let clientId = options.email;
+        if ("id" in options) clientId = options.id;
+        if ("password" in options) clientId = options.password;
+
+        await this.post(`/${inboundId}/delClient/${clientId}`).catch(() => {});
         this.flushCache();
-        this.logger.debug(`Client ${email} deleted.`);
+        this.logger.debug(`Client ${options.email} deleted.`);
     }
 
     async deleteDepletedClients() {
