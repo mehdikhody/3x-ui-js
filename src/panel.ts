@@ -321,15 +321,15 @@ export class Panel {
             throw new Error("Client not found to be updated.");
         }
 
-        const clientOptions = {
-            ...defaultOptions,
-            ...options,
-        };
-
         await this.post(`/updateClient/${clientId}`, {
             id: inboundId,
             settings: JSON.stringify({
-                clients: [clientOptions],
+                clients: [
+                    {
+                        ...defaultOptions,
+                        ...options,
+                    },
+                ],
             }),
         });
 
