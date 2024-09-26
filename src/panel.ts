@@ -393,7 +393,11 @@ export class Panel {
         }
 
         const release = await this.mutex.acquire();
-        await this.post(`/updateClient/${clientId}`, {
+        let id: string = "";
+        if ("id" in defaultOptions) id = defaultOptions.id;
+        if ("password" in defaultOptions) id = defaultOptions.password;
+
+        await this.post(`/updateClient/${id}`, {
             id: inboundId,
             settings: JSON.stringify({
                 clients: [
@@ -426,7 +430,11 @@ export class Panel {
             const defaultOptions = defaults[client.id];
             if (!defaultOptions) continue;
 
-            await this.post(`/updateClient/${client.id}`, {
+            let id: string = "";
+            if ("id" in defaultOptions) id = defaultOptions.id;
+            if ("password" in defaultOptions) id = defaultOptions.password;
+
+            await this.post(`/updateClient/${id}`, {
                 id: inboundId,
                 settings: JSON.stringify({
                     clients: [
