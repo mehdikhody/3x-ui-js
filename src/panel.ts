@@ -339,6 +339,36 @@ export class Panel {
         this.logger.debug(`Client ${clientId} updated.`);
     }
 
+    async updateClients(inboundId: number, clients: T.ClientUpdate[]) {
+        await this.getInbound(inboundId);
+        for (const client of clients) {
+            const defaultOptions = await this.getClientOptions(client.id);
+            if (!defaultOptions) continue;
+
+            await this.post(`/updateClient/${client.id}`, {
+                id: inboundId,
+                settings: JSON.stringify({
+                    clients: [
+                        {
+                            ...defaultOptions,
+                            ...client.options,
+                        },
+                    ],
+                }),
+            });
+
+            this.cache.del(`client:options:${defaultOptions.email}`);
+            this.cache.del(`client:id:${defaultOptions.email}`);
+            this.cache.del(`client:${defaultOptions.email}`);
+            this.cache.del(`client:${client.id}`);
+            this.cache.del(`client:options:${client.id}`);
+            this.logger.debug(`Client ${client.id} updated.`);
+        }
+
+        this.flushCache();
+        this.logger.debug(`${clients.length} clients were updated.`);
+    }
+
     async getClientIps(email: string) {
         if (this.cache.get(`client:ips:${email}`)) {
             this.logger.debug(`Client ${email} IPs loaded from cache.`);

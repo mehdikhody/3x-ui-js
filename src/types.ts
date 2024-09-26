@@ -111,3 +111,8 @@ export type InboundOptions = {
     streamSettings: string;
     sniffing: string;
 };
+
+export type ClientUpdate = {
+    id: string;
+    options: Partial<ClientOptions>;
+};
