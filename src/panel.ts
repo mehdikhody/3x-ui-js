@@ -1,7 +1,7 @@
 import type * as T from "./types.js";
 import { ProxyAgent } from "proxy-agent";
 import { createLogger } from "./logger.js";
-import { Mutex } from "./mutex.js";
+import { Mutex } from "async-mutex";
 import qs from "qs";
 import urljoin from "url-join";
 import axios from "axios";
@@ -94,7 +94,6 @@ export class Panel {
     }
 
     private async get<T>(path: string, params?: unknown) {
-        await this.mutex.lock();
         await this.login();
 
         const url = urljoin("/panel/api/inbounds", path);
@@ -111,7 +110,6 @@ export class Panel {
             })
             .catch(() => {});
 
-        this.mutex.unlock();
         if (!response || response.status !== 200 || !response.data.success) {
             this.logger.error(`${path} have failed.`);
             throw new Error(`${path} have failed.`);
@@ -121,7 +119,6 @@ export class Panel {
     }
 
     private async post<T>(path: string, params?: unknown) {
-        await this.mutex.lock();
         await this.login();
 
         const url = urljoin("/panel/api/inbounds", path);
@@ -140,7 +137,6 @@ export class Panel {
                 this.logger.error(err);
             });
 
-        this.mutex.unlock();
         if (!response || response.status !== 200 || !response.data.success) {
             this.logger.error(`${path} have failed.`);
             throw new Error(`${path} have failed.`);
@@ -186,91 +182,157 @@ export class Panel {
     }
 
     async getInbounds() {
+        const release = await this.mutex.acquire();
+
+        // cache hit
         if (this.cache.get("inbounds")) {
+            release();
             this.logger.debug("Inbounds loaded from cache.");
             return this.cache.get("inbounds") as T.Inbound[];
         }
 
+        // cache miss
         const inbounds = await this.get<T.Inbound[]>("/list");
         this.cache.set("inbounds", inbounds);
         inbounds.map((inbound) => this.cacheInbound(inbound));
 
+        release();
         this.logger.debug("Inbounds loaded from API.");
         return inbounds;
     }
 
     async getInbound(id: number) {
+        const release = await this.mutex.acquire();
+
+        // cache hit
         if (this.cache.get(`inbound:${id}`)) {
+            release();
             this.logger.debug(`Inbound ${id} loaded from cache.`);
             return this.cache.get(`inbound:${id}`) as T.Inbound;
         }
 
+        // cache miss
         const inbound = await this.get<T.Inbound>(`/get/${id}`).catch(() => {});
-        if (!inbound) return null;
+        if (!inbound) {
+            release();
+            this.logger.debug(`Inbound ${id} not founded.`);
+            return null;
+        }
 
-        this.logger.debug(`Inbound ${id} loaded from API.`);
         this.cacheInbound(inbound);
+        release();
+        this.logger.debug(`Inbound ${id} loaded from API.`);
         return inbound;
     }
 
     async addInbound(options: T.InboundOptions) {
-        this.logger.debug(`Adding inbound ${options.remark}.`);
+        const release = await this.mutex.acquire();
 
-        const inbound = await this.post<T.Inbound>("/add", options);
-        this.flushCache();
-
-        this.logger.info(`Inbound ${inbound.remark} added.`);
-        return inbound;
+        try {
+            this.logger.debug(`Adding inbound ${options.remark}.`);
+            const inbound = await this.post<T.Inbound>("/add", options);
+            this.flushCache();
+            this.logger.info(`Inbound ${inbound.remark} added.`);
+            return inbound;
+        } catch (err) {
+            this.logger.warn("Couldn't add inbound.");
+            return null;
+        } finally {
+            release();
+        }
     }
 
     async updateInbound(id: number, options: Partial<T.InboundOptions>) {
-        this.logger.debug(`Updating inbound ${id}.`);
+        const release = await this.mutex.acquire();
 
-        const inbound = await this.getInbound(id);
-        if (!inbound) throw new Error("Inbound not found.");
-
-        options = { ...inbound, ...options };
-        const updated = await this.post<T.Inbound>(`/update/${id}`, options);
-        this.flushCache();
-
-        this.logger.info(`Inbound ${id} updated.`);
-        return updated;
+        try {
+            this.logger.debug(`Updating inbound ${id}.`);
+            const inbound = await this.getInbound(id);
+            if (!inbound) throw new Error("Inbound not found.");
+            options = { ...inbound, ...options };
+            const updated = await this.post<T.Inbound>(`/update/${id}`, options);
+            this.flushCache();
+            this.logger.info(`Inbound ${id} updated.`);
+            return updated;
+        } catch (err) {
+            this.logger.warn("Couldn't update inbound.");
+            return null;
+        } finally {
+            release();
+        }
     }
 
     async resetInboundsStat() {
-        await this.post(`/resetAllTraffics`).catch(() => {});
-        this.logger.debug("Inbounds stat reseted.");
-        this.flushCache();
+        const release = await this.mutex.acquire();
+
+        try {
+            await this.post(`/resetAllTraffics`).catch(() => {});
+            this.logger.debug("Inbounds stat reseted.");
+            this.flushCache();
+            return true;
+        } catch (err) {
+            this.logger.warn("Couldn't reset the inbounds stat.");
+            return false;
+        } finally {
+            release();
+        }
     }
 
     async resetInboundStat(id: number) {
-        await this.post(`/resetAllClientTraffics/${id}`).catch(() => {});
-        this.logger.debug(`Inbound ${id} stat reseted.`);
-        this.flushCache();
+        const release = await this.mutex.acquire();
+
+        try {
+            await this.post(`/resetAllClientTraffics/${id}`).catch(() => {});
+            this.logger.debug(`Inbound ${id} stat reseted.`);
+            this.flushCache();
+            return true;
+        } catch (err) {
+            this.logger.warn(`Couldn't reset the inbound ${id} stat.`);
+            return false;
+        } finally {
+            release();
+        }
     }
 
     async deleteInbound(id: number) {
-        await this.post(`/del/${id}`).catch(() => {});
-        this.logger.debug(`Inbound ${id} deleted.`);
-        this.flushCache();
+        const release = await this.mutex.acquire();
+
+        try {
+            await this.post(`/del/${id}`).catch(() => {});
+            this.logger.debug(`Inbound ${id} deleted.`);
+            this.flushCache();
+            return true;
+        } catch (err) {
+            this.logger.warn(`Couldn't delete the inbound ${id}.`);
+            return false;
+        } finally {
+            release();
+        }
     }
 
     async getClient(email: string) {
+        const release = await this.mutex.acquire();
+
+        // cache hit
         if (this.cache.get(`client:${email}`)) {
+            release();
             this.logger.debug(`Client ${email} loaded from cache.`);
             return this.cache.get(`client:${email}`) as T.Client;
         }
 
+        // cache miss
         const client = await this.get<T.Client>(`/getClientTraffics/${email}`);
         if (client) {
             this.cache.set(`client:${email}`, client);
             this.logger.debug(`Client ${email} loaded from API.`);
+            release();
             return client;
         }
 
+        // search all inbounds
         this.logger.debug(`Try to find client ${email} in inbounds.`);
+        release();
         await this.getInbounds();
-
         if (this.cache.get(`client:${email}`)) {
             this.logger.debug(`Client id ${email} loaded from inbounds.`);
             return this.cache.get(`client:${email}`) as T.Client;
@@ -280,11 +342,13 @@ export class Panel {
     }
 
     async getClientOptions(email: string) {
+        // cache hit
         if (this.cache.get(`client:options:${email}`)) {
             this.logger.debug(`Client ${email} options loaded from cache.`);
             return this.cache.get(`client:options:${email}`) as T.ClientOptions;
         }
 
+        // cache miss
         await this.getInbounds();
         if (this.cache.get(`client:options:${email}`)) {
             this.logger.debug(`Client ${email} options loaded from cache.`);
@@ -295,6 +359,7 @@ export class Panel {
     }
 
     async addClient(inboundId: number, options: T.ClientOptions) {
+        const release = await this.mutex.acquire();
         await this.post("/addClient", {
             id: inboundId,
             settings: JSON.stringify({
@@ -304,9 +369,11 @@ export class Panel {
 
         this.flushCache();
         this.logger.debug(`Client ${options.email} added.`);
+        release();
     }
 
     async addClients(inboundId: number, clients: T.ClientOptions[]) {
+        const release = await this.mutex.acquire();
         await this.post("/addClient", {
             id: inboundId,
             settings: JSON.stringify({ clients }),
@@ -314,15 +381,18 @@ export class Panel {
 
         this.flushCache();
         this.logger.debug(`${clients.length} clients added.`);
+        release();
     }
 
     async updateClient(inboundId: number, clientId: string, options: Partial<T.ClientOptions>) {
         await this.getInbound(inboundId);
         const defaultOptions = await this.getClientOptions(clientId);
         if (!defaultOptions) {
-            throw new Error("Client not found to be updated.");
+            this.logger.warn(`Client ${clientId} not found to be updated.`);
+            return false;
         }
 
+        const release = await this.mutex.acquire();
         await this.post(`/updateClient/${clientId}`, {
             id: inboundId,
             settings: JSON.stringify({
@@ -337,12 +407,23 @@ export class Panel {
 
         this.flushCache();
         this.logger.debug(`Client ${clientId} updated.`);
+        release();
+        return true;
     }
 
     async updateClients(inboundId: number, clients: T.ClientUpdate[]) {
         await this.getInbound(inboundId);
+
+        const defaults: Record<string, T.ClientOptions> = {};
         for (const client of clients) {
             const defaultOptions = await this.getClientOptions(client.id);
+            if (!defaultOptions) continue;
+            defaults[client.id] = defaultOptions;
+        }
+
+        const release = await this.mutex.acquire();
+        for (const client of clients) {
+            const defaultOptions = defaults[client.id];
             if (!defaultOptions) continue;
 
             await this.post(`/updateClient/${client.id}`, {
@@ -357,16 +438,12 @@ export class Panel {
                 }),
             });
 
-            this.cache.del(`client:options:${defaultOptions.email}`);
-            this.cache.del(`client:id:${defaultOptions.email}`);
-            this.cache.del(`client:${defaultOptions.email}`);
-            this.cache.del(`client:${client.id}`);
-            this.cache.del(`client:options:${client.id}`);
             this.logger.debug(`Client ${client.id} updated.`);
         }
 
         this.flushCache();
         this.logger.debug(`${clients.length} clients were updated.`);
+        release();
     }
 
     async getClientIps(email: string) {
@@ -388,40 +465,89 @@ export class Panel {
     }
 
     async resetClientIps(email: string) {
-        await this.post(`/clearClientIps/${email}`).catch(() => {});
-        this.cache.del(`client:ips:${email}`);
-        this.logger.debug(`Client ${email} IPs reseted.`);
+        try {
+            await this.post(`/clearClientIps/${email}`);
+            this.cache.del(`client:ips:${email}`);
+            this.logger.debug(`Client ${email} IPs reseted.`);
+            return true;
+        } catch (err) {
+            this.logger.warn(`Couldn't reset the client ${email} ips.`);
+            this.logger.error(err);
+            return false;
+        }
     }
 
     async resetClientStat(inboundId: number, email: string) {
-        await this.post(`/${inboundId}/resetClientTraffic/${email}`).catch(() => {});
-        this.flushCache();
-        this.logger.debug(`Client ${email} stat reseted.`);
+        const release = await this.mutex.acquire();
+
+        try {
+            await this.post(`/${inboundId}/resetClientTraffic/${email}`);
+            this.flushCache();
+            this.logger.debug(`Client ${email} stat reseted.`);
+            return true;
+        } catch (err) {
+            this.logger.warn(`Couldn't reset the client ${email} stat.`);
+            this.logger.error(err);
+            return false;
+        } finally {
+            release();
+        }
     }
 
     async deleteClient(inboundId: number, id: string) {
         const options = await this.getClientOptions(id);
         if (!options) return;
 
-        let clientId = options.email;
-        if ("id" in options) clientId = options.id;
-        if ("password" in options) clientId = options.password;
+        const release = await this.mutex.acquire();
 
-        await this.post(`/${inboundId}/delClient/${clientId}`).catch(() => {});
-        this.flushCache();
-        this.logger.debug(`Client ${options.email} deleted.`);
+        try {
+            let clientId = options.email;
+            if ("id" in options) clientId = options.id;
+            if ("password" in options) clientId = options.password;
+
+            await this.post(`/${inboundId}/delClient/${clientId}`).catch(() => {});
+            this.flushCache();
+            this.logger.debug(`Client ${options.email} deleted.`);
+            return true;
+        } catch (err) {
+            this.logger.warn(`Couldn't delete the client ${id}.`);
+            this.logger.error(err);
+            return false;
+        } finally {
+            release();
+        }
     }
 
     async deleteDepletedClients() {
-        await this.post("/delDepletedClients").catch(() => {});
-        this.flushCache();
-        this.logger.debug(`Depleted clients deleted.`);
+        const release = await this.mutex.acquire();
+
+        try {
+            await this.post("/delDepletedClients");
+            this.flushCache();
+            this.logger.debug(`Depleted clients deleted.`);
+        } catch (err) {
+            this.logger.warn(`Couldn't delete the depleted clients.`);
+            this.logger.error(err);
+        } finally {
+            release();
+        }
     }
 
     async deleteInboundDepletedClients(inboundId: number) {
-        await this.post(`/delDepletedClients/${inboundId}`).catch(() => {});
-        this.flushCache();
-        this.logger.debug(`Depleted clients deleted.`);
+        const release = await this.mutex.acquire();
+
+        try {
+            await this.post(`/delDepletedClients/${inboundId}`);
+            this.flushCache();
+            this.logger.debug(`Depleted clients deleted.`);
+            return true;
+        } catch (err) {
+            this.logger.warn(`Couldn't delete the depleted clients of inbound ${inboundId}.`);
+            this.logger.error(err);
+            return false;
+        } finally {
+            release();
+        }
     }
 
     async getOnlineClients() {
