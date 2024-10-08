@@ -5,3 +5,8 @@ tests
 .eslintrc.json
 .prettierrc.json
 tsconfig.json
+tsconfig.build.json
+vitest.config.ts
+
+install.sh
+install_output.log
