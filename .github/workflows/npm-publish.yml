@@ -46,6 +46,8 @@ jobs:
           sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$ESCAPED_WEB_BASE_PATH\";|g" tests/utils/api.ts
 
           cat tests/utils/api.ts
+
+          x-ui status
         
       - name: Setup Node.js
         uses: actions/setup-node@v3
