@@ -27,13 +27,13 @@ npm install 3x-ui
 First, import the SDK:
 
 ```js
-import { Panel } from "3x-ui";
+import { XuiApi } from "3x-ui";
 ```
 
 Initialize the SDK with the URL of your 3x-ui panel:
 
 ```js
-const api = new Panel("http://username:password@localhost:2053");
+const api = new XuiApi("http://username:password@localhost:2053");
 api.debug = true; // Enables debug mode - defualt is false
 api.stdTTL = 60; // Cache time in seconds - default is 10s
 ```
@@ -42,8 +42,8 @@ Then, you can utilize the SDK functions:
 
 ```js
 const inbounds = await api.getInbounds();
-const clientStat = await api.getClient("email or uuid or password");
-const clientOptions = await api.getClientOptions("email or uuid or password");
+const clientStat = await api.getClient("email or clientId");
+const clientOptions = await api.getClientOptions("email or clientId");
 const onlines = await api.getOnlineClients();
 ```
 
@@ -70,23 +70,22 @@ HTTPS_PROXY="https://proxy-server-over-tls.com:3129"
 
 ### Clients
 
--   `getClient(email: string)`: Returns a client with the given email.
--   `getClientIps(email: string)`: Returns all client's IPs with the given email.
--   `getClientOptions(email: string)`: Returns all client's options with the given email.
+-   `getClient(clientId: string)`: Returns a client with the given `email` or `clientId`.
+-   `getClientIps(clientId: string)`: Returns all client's IPs with the given `email` or `clientId`.
+-   `getClientOptions(clientId: string)`: Returns all client's options with the given `email` or `clientId`.
 -   `addClient(inboundId: number, options: ClientOptions)`: Adds a new client with the given options.
--   `addClients(inboundId: number, clients: ClientOptions[])`: Adds new clients with the given options.
--   `updateClient(inboundId: number, clientId: string, options: Partial<ClientOptions>)`: Updates a client with the given client ID.
--   `resetClientIps(email: string)`: Resets all client's IPs with the given email.
--   `resetClientStat(inboundId: number, email: string)`: Resets a client's stat with the given email.
--   `deleteClient(inboundId: number, email: string)`: Deletes a client with the given email.
+-   `updateClient(clientId: string, options: Partial<ClientOptions>)`: Updates a client with the given `email` or `clientId`.
+-   `resetClientIps(clientId: string)`: Resets all client's IPs with the given `email` or `clientId`.
+-   `resetClientStat(clientId: string)`: Resets a client's stat with the given `email` or `clientId`.
+-   `deleteClient(clientId: string)`: Deletes a client with the given `email` or `clientId`.
 -   `deleteDepletedClients()`: Deletes all clients that have depleted their traffic.
 -   `deleteInboundDepletedClients(inboundId: number)`: Deletes all clients of an inbound that have depleted their traffic.
+-   `getOnlineClients()`: Returns all online clients.
 
 ### Other Functions
 
--   `getOnlineClients()`: Returns all online clients.
 -   `exportData()`: Exports all data via Telegram bot.
 
 ## Example
 
-For more examples, check out [the example directory on our GitHub repository](https://github.com/mehdikhody/3x-ui-js/tree/master/examples).
+For more examples, check out [the test directory on our GitHub repository](https://github.com/mehdikhody/3x-ui-js/tree/master/tests).

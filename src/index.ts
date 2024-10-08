@@ -1,2 +1,2 @@
 export * from "$lib/types";
-export * from "./api";
+export { Api as XuiApi } from "./api";

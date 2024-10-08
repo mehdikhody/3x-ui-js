@@ -1,8 +1,8 @@
 import { assert, expect, describe, beforeAll, afterAll, it } from "vitest";
 import { randomUUID } from "crypto";
-import { Api, ClientOptions } from "3x-ui";
+import { XuiApi, ClientOptions } from "3x-ui";
 
-const local = new Api("http://admin:admin@localhost:2053");
+const local = new XuiApi("http://admin:admin@localhost:2053");
 let inboundId = 0;
 
 beforeAll(async () => {
@@ -150,6 +150,12 @@ describe("Client", () => {
         const ips = await local.getClientIps(email);
         assert(ips);
         expect(ips).toBeDefined();
+    });
+
+    it("Get Online Clients", async () => {
+        const clients = await local.getOnlineClients();
+        assert(clients);
+        expect(clients).toBeDefined();
     });
 
     it("Reset Client Ips By ID", async () => {

@@ -1,8 +1,8 @@
 import { assert, expect, describe, it } from "vitest";
-import { Api, ClientOptions } from "3x-ui";
+import { XuiApi, ClientOptions } from "3x-ui";
 
 describe("Inbound", () => {
-    const local = new Api("http://admin:admin@localhost:2053");
+    const local = new XuiApi("http://admin:admin@localhost:2053");
 
     it("Add Inbound", async () => {
         const inbound = await local.addInbound({

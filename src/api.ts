@@ -639,7 +639,7 @@ export class Api {
             const emails = await this.post<string[]>("/onlines");
             this._cache.set("clients:online", emails);
             this._logger.debug("Online clients loaded from API.");
-            return emails;
+            return emails || [];
         } catch (err) {
             this._logger.error(err);
             return [];
