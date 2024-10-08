@@ -19,7 +19,7 @@ jobs:
         run: |
           curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh -o install.sh
           chmod +x install.sh
-          output=$(expect << EOF
+          expect << EOF | tee install_output.log
           spawn sudo ./install.sh
           expect {
             "*customize the panel settings?*" { send "y\r" }
@@ -35,10 +35,8 @@ jobs:
           }
           expect eof
           EOF
-          )
 
-          echo "$output"
-          WEB_BASE_PATH=$(echo "$OUTPUT" | grep "WebBasePath" | sed 's/.*WebBasePath: //')
+          WEB_BASE_PATH=$(grep "WebBasePath" install_output.log | sed 's/.*WebBasePath: //')
           echo "WebBasePath: $WEB_BASE_PATH"
 
           sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$WEB_BASE_PATH\";|g" tests/utils/api.ts
