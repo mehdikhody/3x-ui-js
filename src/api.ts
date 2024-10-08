@@ -92,7 +92,8 @@ export class Api {
                 throw new Error("Failed to initialize session");
             }
 
-            this._cookie = response.headers["set-cookie"][0];
+            const cookies = response.headers["set-cookie"];
+            this._cookie = cookies.at(-1) || cookies[0];
             this._logger.info("Session initialized");
         } catch (err) {
             if (err instanceof Axios.AxiosError) {
@@ -137,12 +138,11 @@ export class Api {
 
     private async post<T>(path: string, params?: unknown) {
         const endpoint = urlJoin("/panel/api/inbounds", path);
-        this._logger.debug(`POST ${endpoint}`);
 
         try {
             await this.login();
-            const data = JSON.stringify(params);
-            const response = await this._axios.post(endpoint, data, {
+            this._logger.debug(`POST ${endpoint}`);
+            const response = await this._axios.post(endpoint, params, {
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -151,6 +151,7 @@ export class Api {
             });
 
             if (response.status !== 200 || !response.data.success) {
+                this._logger.http(response.data);
                 this._logger.error(`${endpoint} have failed.`);
                 throw new Error(`${endpoint} have failed.`);
             }

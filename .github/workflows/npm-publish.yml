@@ -4,17 +4,51 @@ on:
   release:
     types:
       - created
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+
+      - name: Install expect
+        run: sudo apt-get update && sudo apt-get install -y expect
+
+      - name: Install 3x-ui
+        run: |
+          expect << EOF
+          spawn sudo bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
+          expect "Would you like to customize the panel settings? (If not, random settings will be applied) [y/n]:"
+          send "y\r"
+          expect "Please set up your username:"
+          send "admin\r"
+          expect "Please set up your password:"
+          send "admin\r"
+          expect "Please set up the panel port:"
+          send "2053\r"
+          expect eof
+          EOF
+
+      - name: Get x-ui Settings
+        run: |
+          output=$(x-ui settings)
+          echo "$output"
+          webBasePath=$(echo "$output" | grep -oP 'webBasePath: \K\S+')
+          sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$webBasePath\";|g" ./tests/utils/api.ts
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 18
           registry-url: 'https://registry.npmjs.org/'
-      - run: npm ci
-      - run: npm test
-      - run: npm publish
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm test
+        
+      - name: Publish to NPM
+        run: npm publish
         env:
-          NODE_AUTH_TOKEN: '${{secrets.npm_token}}'
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}

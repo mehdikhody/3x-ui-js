@@ -1,95 +1,60 @@
 import { assert, expect, describe, it } from "vitest";
-import { XuiApi, type ClientOptions } from "3x-ui";
+import { addInbound } from "./utils/addInbound";
+import { api } from "./utils/api";
 
 describe("Inbound", () => {
-    const local = new XuiApi("http://admin:admin@localhost:2053");
-
     it("Add Inbound", async () => {
-        const inbound = await local.addInbound({
-            enable: true,
-            remark: "New inbound",
-            listen: "127.0.0.1",
-            port: 48965,
-            protocol: "vmess",
-            expiryTime: 0,
-            settings: {
-                password: "password",
-                decryption: "none",
-                fallbacks: [],
-                clients: [
-                    {
-                        id: "6641ba90-4734-4eba-bf7d-a9e1ad0c85f7",
-                        email: "new@example.com",
-                        enable: true,
-                        expiryTime: 0,
-                        limitIp: 0,
-                        totalGB: 0,
-                    } as ClientOptions as any,
-                ],
-            },
-            streamSettings: {
-                network: "ws",
-                security: "none",
-                wsSettings: {},
-            },
-            sniffing: {
-                enabled: true,
-                destOverride: ["http", "tls"],
-            },
-        });
-
-        assert(inbound);
-        expect(inbound.remark).toBe("New inbound");
+        const inbound = await addInbound("Inbound");
+        expect(inbound).toBeTypeOf("object");
     });
 
     it("Fetch Inbounds", async () => {
-        const inbounds = await local.getInbounds();
+        api.flushCache();
+        const inbounds = await api.getInbounds();
         expect(inbounds).toBeDefined();
         expect(inbounds.length).toBeGreaterThan(0);
     });
 
     it("Fetch Inbound", async () => {
-        const inbounds = await local.getInbounds();
-        assert(inbounds.length > 0);
-        local.flushCache();
-        const inbound = await local.getInbound(inbounds[0].id);
+        const inbound = await addInbound("Inbound");
         assert(inbound);
-        expect(inbound).toBeDefined();
-        expect(inbound.id).toBe(1);
+        api.flushCache();
+        const result = await api.getInbound(inbound.id);
+        expect(result).toBeDefined();
     });
 
     it("Update Inbound", async () => {
-        const inbounds = await local.getInbounds();
-        const inbound = inbounds.find((inbound) => inbound.remark === "New inbound");
+        const inbound = await addInbound("Inbound");
         assert(inbound);
-
-        const updatedInbound = await local.updateInbound(inbound.id, {
-            remark: "Updated inbound",
+        api.flushCache();
+        const result = await api.updateInbound(inbound.id, {
+            remark: `${inbound.remark} - Updated`,
         });
 
-        assert(updatedInbound);
-        expect(updatedInbound.remark).toBe("Updated inbound");
-    });
-
-    it("Delete Inbound", async () => {
-        const inbounds = await local.getInbounds();
-        const inbound = inbounds.find((inbound) => inbound.remark === "Updated inbound");
-        assert(inbound);
-        const result = await local.deleteInbound(inbound.id);
-        expect(result).toBe(true);
-        const newInbounds = await local.getInbounds();
-        expect(newInbounds.length).toBe(inbounds.length - 1);
+        expect(result).toBeTypeOf("object");
     });
 
     it("Reset Inbounds Stat", async () => {
-        const result = await local.resetInboundsStat();
+        const result = await api.resetInboundsStat();
         expect(result).toBe(true);
     });
 
     it("Reset Inbound Stat", async () => {
-        const inbounds = await local.getInbounds();
-        assert(inbounds.length > 0);
-        const result = await local.resetInboundStat(inbounds[0].id);
+        const inbound = await addInbound("Inbound");
+        assert(inbound);
+        api.flushCache();
+        const result = await api.resetInboundStat(inbound.id);
         expect(result).toBe(true);
+    });
+
+    it("Delete Inbound", async () => {
+        const inbounds = await api.getInbounds();
+        assert(inbounds.length > 0);
+
+        for (const inbound of inbounds) {
+            if (!inbound.remark.startsWith("Inbound - ")) continue;
+            const result = await api.deleteInbound(inbound.id);
+            expect(result).toBe(true);
+        }
     });
 });

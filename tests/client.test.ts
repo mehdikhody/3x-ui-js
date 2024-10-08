@@ -1,195 +1,152 @@
 import { assert, expect, describe, beforeAll, afterAll, it } from "vitest";
-import { randomUUID } from "crypto";
-import { XuiApi, type ClientOptions } from "3x-ui";
+import { api } from "./utils/api";
+import { addInbound } from "./utils/addInbound";
+import { addClient } from "./utils/addClient";
 
-const local = new XuiApi("http://admin:admin@localhost:2053");
 let inboundId = 0;
 
 beforeAll(async () => {
-    const inbounds = await local.getInbounds();
-    const inbound = inbounds.find((inbound) => inbound.remark === "Client inbound");
-    if (inbound) {
-        inboundId = inbound.id;
-        return;
-    }
-
-    const newInbound = await local.addInbound({
-        enable: true,
-        remark: "Client inbound",
-        listen: "127.0.0.1",
-        port: 48964,
-        protocol: "vmess",
-        expiryTime: 0,
-        settings: {
-            decryption: "none",
-            fallbacks: [],
-            clients: [
-                {
-                    id: "8841ba90-4734-4eba-bf7d-a9e1ad0c85f7",
-                    email: "client@example.com",
-                    enable: true,
-                    expiryTime: 0,
-                    limitIp: 0,
-                    totalGB: 0,
-                } as ClientOptions as any,
-            ],
-        },
-        streamSettings: {
-            network: "ws",
-            security: "none",
-            wsSettings: {},
-        },
-        sniffing: {
-            enabled: true,
-            destOverride: ["http", "tls"],
-        },
-    });
-
-    assert(newInbound);
-    expect(newInbound.remark).toBe("Client inbound");
-    inboundId = newInbound.id;
+    const inbound = await addInbound("Client");
+    assert(inbound);
+    inboundId = inbound.id;
 });
 
 afterAll(async () => {
-    assert(inboundId);
-    await local.deleteInbound(inboundId);
+    const inbounds = await api.getInbounds();
+    for (const inbound of inbounds) {
+        if (!inbound.remark.startsWith("Client - ")) continue;
+        await api.deleteInbound(inbound.id);
+    }
 });
 
 describe("Client", () => {
-    const email = Math.random().toString(36).slice(2);
-    const id = randomUUID();
-
-    const email2 = Math.random().toString(36).slice(2);
-    const id2 = randomUUID();
-
     it("Add Client", async () => {
-        const client1 = await local.addClient(inboundId, {
-            email: email,
-            enable: true,
-            expiryTime: Date.now() + Math.floor(Math.random() * 10) * 60 * 60 * 1000,
-            id: id,
-            limitIp: Math.floor(Math.random() * 10),
-            subId: "",
-            tgId: "",
-            totalGB: Math.floor(Math.random() * 10) * 1024 * 1024 * 1024,
-        });
-
-        assert(client1);
-        expect(client1.email).toBe(email);
-
-        const client2 = await local.addClient(inboundId, {
-            email: email2,
-            enable: true,
-            expiryTime: Date.now() + Math.floor(Math.random() * 10) * 60 * 60 * 1000,
-            id: id2,
-            limitIp: Math.floor(Math.random() * 10),
-            subId: "",
-            tgId: "",
-            totalGB: Math.floor(Math.random() * 10) * 1024 * 1024 * 1024,
-        });
-
-        assert(client2);
-        expect(client2.email).toBe(email2);
+        const { client, options } = await addClient(inboundId);
+        assert(client);
+        expect(options.email).toBe(client.email);
     });
 
     it("Get Client By Email", async () => {
-        local.flushCache();
-        const client = await local.getClient(email);
+        const { options } = await addClient(inboundId);
+        api.flushCache();
+        const client = await api.getClient(options.email);
         assert(client);
-        expect(client.email).toBe(email);
+        expect(client.email).toBe(options.email);
     });
 
     it("Get Client By Id", async () => {
-        local.flushCache();
-        const client = await local.getClient(id);
+        const { options } = await addClient(inboundId);
+        api.flushCache();
+        const client = await api.getClient(options.id);
         assert(client);
-        expect(client.email).toBe(email);
+        expect(client.email).toBe(options.email);
     });
 
     it("Get Client Options By Email", async () => {
-        local.flushCache();
-        const client = await local.getClientOptions(email);
+        const { options } = await addClient(inboundId);
+        api.flushCache();
+        const client = await api.getClientOptions(options.email);
         assert(client);
-        expect(client.email).toBe(email);
+        expect(client.email).toBe(options.email);
     });
 
     it("Get Client Options By Id", async () => {
-        local.flushCache();
-        const client = await local.getClientOptions(id);
+        const { options } = await addClient(inboundId);
+        api.flushCache();
+        const client = await api.getClientOptions(options.id);
         assert(client);
-        expect(client.email).toBe(email);
+        expect(client.email).toBe(options.email);
     });
 
     it("Update Client By Email", async () => {
-        const client = await local.updateClient(email, {
-            enable: false,
+        const { options } = await addClient(inboundId);
+        api.flushCache();
+
+        await api.updateClient(options.email, {
+            tgId: 1234,
         });
 
-        assert(client);
-        expect(client.email).toBe(email);
-
-        const options = await local.getClientOptions(email);
-        assert(options);
-        expect(options.enable).toBe(false);
+        const updatedOptions = await api.getClientOptions(options.email);
+        assert(updatedOptions);
+        expect(updatedOptions.tgId).toBe(1234);
     });
 
     it("Update Client By Id", async () => {
-        const client = await local.updateClient(id, {
-            enable: true,
+        const { options } = await addClient(inboundId);
+        api.flushCache();
+
+        await api.updateClient(options.id, {
+            tgId: 1234,
         });
 
-        assert(client);
-        expect(client.email).toBe(email);
-
-        const options = await local.getClientOptions(id);
-        assert(options);
-        expect(options.enable).toBe(true);
-    });
-
-    it("Get Client Ips By Email", async () => {
-        const ips = await local.getClientIps(email);
-        assert(ips);
-        expect(ips).toBeDefined();
+        const updatedOptions = await api.getClientOptions(options.id);
+        assert(updatedOptions);
+        expect(updatedOptions.tgId).toBe(1234);
     });
 
     it("Get Online Clients", async () => {
-        const clients = await local.getOnlineClients();
+        const clients = await api.getOnlineClients();
         assert(clients);
         expect(clients).toBeDefined();
     });
 
-    it("Reset Client Ips By ID", async () => {
-        const result = await local.resetClientIps(id);
+    it("Get Client Ips By Email", async () => {
+        const { options } = await addClient(inboundId);
+        api.flushCache();
+
+        const ips = await api.getClientIps(options.email);
+        assert(ips);
+        expect(ips).toBeDefined();
+    });
+
+    it("Get Client Ips By Id", async () => {
+        const { options } = await addClient(inboundId);
+        api.flushCache();
+
+        const ips = await api.getClientIps(options.id);
+        assert(ips);
+        expect(ips).toBeDefined();
+    });
+
+    it("Reset Client Ips By Email", async () => {
+        const { options } = await addClient(inboundId);
+        api.flushCache();
+
+        const result = await api.resetClientIps(options.email);
         expect(result).toBe(true);
     });
 
-    it("Reset Client Stat By Email", async () => {
-        const result = await local.resetClientStat(email);
-        expect(result).toBe(true);
-    });
+    it("Reset Client Ips By Id", async () => {
+        const { options } = await addClient(inboundId);
+        api.flushCache();
 
-    it("Reset Client Stat By ID", async () => {
-        const result = await local.resetClientStat(id);
+        const result = await api.resetClientIps(options.id);
         expect(result).toBe(true);
     });
 
     it("Delete Deprecated Clients", async () => {
-        const result = await local.deleteDepletedClients();
+        const result = await api.deleteDepletedClients();
         expect(result).toBe(true);
     });
 
     it("Delete Deprecated Clients of Inbound", async () => {
-        const result = await local.deleteInboundDepletedClients(inboundId);
+        const result = await api.deleteInboundDepletedClients(inboundId);
         expect(result).toBe(true);
     });
 
     it("Delete Client By Email", async () => {
-        const result = await local.deleteClient(email);
+        const { options } = await addClient(inboundId);
+        api.flushCache();
+
+        const result = await api.deleteClient(options.email);
         expect(result).toBe(true);
     });
 
     it("Delete Client By Id", async () => {
-        const result = await local.deleteClient(id2);
+        const { options } = await addClient(inboundId);
+        api.flushCache();
+
+        const result = await api.deleteClient(options.id);
         expect(result).toBe(true);
     });
 });
