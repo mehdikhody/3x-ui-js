@@ -36,11 +36,15 @@ jobs:
           expect eof
           EOF
 
+          cat tests/utils/api.ts
+          
           WEB_BASE_PATH=$(grep "WebBasePath" install_output.log | sed 's/.*WebBasePath: //')
           echo "WebBasePath: $WEB_BASE_PATH"
 
           ESCAPED_WEB_BASE_PATH=$(printf '%s\n' "$WEB_BASE_PATH" | sed 's/[\/&]/\\&/g')
           sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$ESCAPED_WEB_BASE_PATH\";|g" tests/utils/api.ts
+
+          cat tests/utils/api.ts
         
       - name: Setup Node.js
         uses: actions/setup-node@v3
