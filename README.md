@@ -84,7 +84,7 @@ HTTPS_PROXY="https://proxy-server-over-tls.com:3129"
 
 ### Other Functions
 
--   `exportData()`: Exports all data via Telegram bot.
+-   `sendBackup()`: send backup file via Telegram bot.
 
 ## Example
 
