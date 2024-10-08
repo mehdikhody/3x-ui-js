@@ -1,6 +1,6 @@
 import { assert, expect, describe, beforeAll, afterAll, it } from "vitest";
 import { randomUUID } from "crypto";
-import { XuiApi, ClientOptions } from "3x-ui";
+import { XuiApi, type ClientOptions } from "3x-ui";
 
 const local = new XuiApi("http://admin:admin@localhost:2053");
 let inboundId = 0;

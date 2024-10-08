@@ -1,5 +1,5 @@
 import { assert, expect, describe, it } from "vitest";
-import { XuiApi, ClientOptions } from "3x-ui";
+import { XuiApi, type ClientOptions } from "3x-ui";
 
 describe("Inbound", () => {
     const local = new XuiApi("http://admin:admin@localhost:2053");
