@@ -39,7 +39,8 @@ jobs:
           WEB_BASE_PATH=$(grep "WebBasePath" install_output.log | sed 's/.*WebBasePath: //')
           echo "WebBasePath: $WEB_BASE_PATH"
 
-          sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$WEB_BASE_PATH\";|g" tests/utils/api.ts
+          ESCAPED_WEB_BASE_PATH=$(printf '%s\n' "$WEB_BASE_PATH" | sed 's/[\/&]/\\&/g')
+          sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$ESCAPED_WEB_BASE_PATH\";|g" tests/utils/api.ts
         
       - name: Setup Node.js
         uses: actions/setup-node@v3
