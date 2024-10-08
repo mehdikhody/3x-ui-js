@@ -1,5 +1,6 @@
 {
     "exclude": ["node_modules", "build"],
+    "include": ["src", "tests"],
     "compilerOptions": {
         "strict": true,
         "module": "ESNext",

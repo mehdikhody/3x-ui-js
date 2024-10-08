@@ -16,7 +16,7 @@
         "test": "vitest ."
     },
     "devDependencies": {
-        "@types/node": "^20.10.4",
+        "@types/node": "^20.16.11",
         "@types/qs": "^6.9.11",
         "@typescript-eslint/eslint-plugin": "^6.13.2",
         "@typescript-eslint/parser": "^6.13.2",
