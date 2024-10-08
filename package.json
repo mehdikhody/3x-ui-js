@@ -29,7 +29,9 @@
         "tsx": "^4.6.2",
         "typescript": "^5.3.3",
         "vite-tsconfig-paths": "^5.0.1",
-        "vitest": "^2.1.2"
+        "vitest": "^2.1.2",
+        "xray-zod": "^1.0.0",
+        "zod": "^3.23.8"
     },
     "dependencies": {
         "async-mutex": "^0.5.0",
@@ -38,9 +40,7 @@
         "proxy-agent": "^6.3.1",
         "qs": "^6.11.2",
         "url-join": "^5.0.0",
-        "winston": "^3.11.0",
-        "xray-zod": "file:../xray-zod",
-        "zod": "^3.23.8"
+        "winston": "^3.11.0"
     },
     "keywords": [
         "xray",
