@@ -19,7 +19,7 @@ jobs:
         run: |
           curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh -o install.sh
           chmod +x install.sh
-          expect << EOF
+          output=$(expect << EOF
           spawn sudo ./install.sh
           expect {
             "*customize the panel settings?*" { send "y\r" }
@@ -35,10 +35,8 @@ jobs:
           }
           expect eof
           EOF
+          )
 
-      - name: Get x-ui Settings
-        run: |
-          output=$(x-ui settings)
           echo "$output"
           webBasePath=$(echo "$output" | grep -oP 'webBasePath: \K\S+' | sed 's|^/||;s|/$||')
           sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$webBasePath\";|g" tests/utils/api.ts
