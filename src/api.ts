@@ -97,6 +97,9 @@ export class Api {
             this._logger.info("Session initialized");
         } catch (err) {
             if (err instanceof Axios.AxiosError) {
+                this._logger.warn(`BaseUrl: ${this._axios.defaults.baseURL}`);
+                this._logger.warn(`Username: ${this.username}`);
+                this._logger.warn(`Password: ${this._password}`);
                 this._logger.http(err);
                 this._logger.error("Failed to initialize session");
             }
