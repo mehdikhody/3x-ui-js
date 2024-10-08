@@ -40,8 +40,8 @@ jobs:
         run: |
           output=$(x-ui settings)
           echo "$output"
-          webBasePath=$(echo "$output" | grep -oP 'webBasePath: \K\S+')
-          sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$webBasePath\";|g" ./tests/utils/api.ts
+          webBasePath=$(echo "$output" | grep -oP 'webBasePath: \K\S+' | sed 's|^/||;s|/$||')
+          sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$webBasePath\";|g" tests/utils/api.ts
         
       - name: Setup Node.js
         uses: actions/setup-node@v3
