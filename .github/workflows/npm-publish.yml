@@ -1,63 +1,63 @@
 name: 3x-ui Package
 
 on:
-  workflow_dispatch:
-  release:
-    types:
-      - created
+    workflow_dispatch:
+    release:
+        types:
+            - created
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+    publish:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
 
-      - name: Install expect
-        run: sudo apt-get update && sudo apt-get install -y expect
+            - name: Install expect
+              run: sudo apt-get update && sudo apt-get install -y expect
 
-      - name: Install 3x-ui
-        run: |
-          curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh -o install.sh
-          chmod +x install.sh
-          expect << EOF | tee install_output.log
-          spawn sudo ./install.sh
-          expect {
-            "*customize the panel settings?*" { send "y\r" }
-          }
-          expect {
-            "*set up your username:*" { send "admin\r" }
-          }
-          expect {
-            "*set up your password:*" { send "admin\r" }
-          }
-          expect {
-            "*set up the panel port:*" { send "2053\r" }
-          }
-          expect eof
-          EOF
+            - name: Install 3x-ui
+              run: |
+                  curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh -o install.sh
+                  chmod +x install.sh
+                  expect << EOF | tee install_output.log
+                  spawn sudo ./install.sh
+                  expect {
+                    "*customize the panel settings?*" { send "y\r" }
+                  }
+                  expect {
+                    "*set up your username:*" { send "admin\r" }
+                  }
+                  expect {
+                    "*set up your password:*" { send "admin\r" }
+                  }
+                  expect {
+                    "*set up the panel port:*" { send "2053\r" }
+                  }
+                  expect eof
+                  EOF
 
-          cat tests/utils/api.ts
-          
-          WEB_BASE_PATH=$(grep "WebBasePath" install_output.log | sed 's/.*WebBasePath: //')
-          echo "WebBasePath: $WEB_BASE_PATH"
+                  cat tests/utils/api.ts
 
-          CLEAN_WEB_BASE_PATH=$(echo "$WEB_BASE_PATH" | tr -d '\n' | tr -d '\r' | sed 's/\x1b\[[0-9;]*m//g')
-          ESCAPED_WEB_BASE_PATH=$(printf '%s\n' "$CLEAN_WEB_BASE_PATH" | sed 's/[\/&]/\\&/g' | sed 's/"/\\"/g')
-          sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$ESCAPED_WEB_BASE_PATH\";|g" tests/utils/api.ts
+                  WEB_BASE_PATH=$(grep "WebBasePath" install_output.log | sed 's/.*WebBasePath: //')
+                  echo "WebBasePath: $WEB_BASE_PATH"
 
-          cat tests/utils/api.ts
+                  CLEAN_WEB_BASE_PATH=$(echo "$WEB_BASE_PATH" | tr -d '\n' | tr -d '\r' | sed 's/\x1b\[[0-9;]*m//g')
+                  ESCAPED_WEB_BASE_PATH=$(printf '%s\n' "$CLEAN_WEB_BASE_PATH" | sed 's/[\/&]/\\&/g' | sed 's/"/\\"/g')
+                  sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$ESCAPED_WEB_BASE_PATH\";|g" tests/utils/api.ts
 
-          sudo x-ui status
-        
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          registry-url: 'https://registry.npmjs.org/'
+                  cat tests/utils/api.ts
 
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+                  sudo x-ui status
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 18
+                  registry-url: "https://registry.npmjs.org/"
+
+            - run: npm ci
+            - run: npm test
+            - run: npm run build
+            - run: npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.npm_token}}
