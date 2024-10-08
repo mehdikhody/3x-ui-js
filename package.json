@@ -12,8 +12,9 @@
     },
     "scripts": {
         "prepublish": "npm run build",
-        "build": "tsc -p tsconfig.json",
-        "format": "prettier --write ."
+        "build": "tsc -p tsconfig.build.json && resolve-tspaths",
+        "format": "prettier --write .",
+        "test": "vitest ."
     },
     "devDependencies": {
         "@types/node": "^20.10.4",
@@ -24,8 +25,11 @@
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-prettier": "^5.0.1",
         "prettier": "^3.1.0",
+        "resolve-tspaths": "^0.8.22",
         "tsx": "^4.6.2",
-        "typescript": "^5.3.3"
+        "typescript": "^5.3.3",
+        "vite-tsconfig-paths": "^5.0.1",
+        "vitest": "^2.1.2"
     },
     "dependencies": {
         "async-mutex": "^0.5.0",
@@ -34,7 +38,9 @@
         "proxy-agent": "^6.3.1",
         "qs": "^6.11.2",
         "url-join": "^5.0.0",
-        "winston": "^3.11.0"
+        "winston": "^3.11.0",
+        "xray-zod": "file:../xray-zod",
+        "zod": "^3.23.8"
     },
     "keywords": [
         "xray",

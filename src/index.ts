@@ -1,2 +1,2 @@
-export type * from "./types.js";
-export * from "./panel.js";
+export * from "$lib/types";
+export * from "./api";

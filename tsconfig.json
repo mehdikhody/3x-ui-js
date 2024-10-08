@@ -1,14 +1,19 @@
 {
-    "exclude": ["node_modules", "build", "examples"],
+    "exclude": ["node_modules", "build"],
     "compilerOptions": {
         "strict": true,
-        "module": "NodeNext",
+        "module": "ESNext",
         "target": "ESNext",
-        "moduleResolution": "NodeNext",
+        "moduleResolution": "Node",
         "outDir": "build",
         "rootDirs": ["src"],
         "esModuleInterop": true,
         "declaration": true,
-        "lib": ["ESNext"]
+        "lib": ["ESNext"],
+        "baseUrl": ".",
+        "paths": {
+            "3x-ui": ["src/index.ts"],
+            "$lib/*": ["src/lib/*"]
+        }
     }
 }
