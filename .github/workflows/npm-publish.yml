@@ -17,16 +17,22 @@ jobs:
 
       - name: Install 3x-ui
         run: |
+          curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh -o install.sh
+          chmod +x install.sh
           expect << EOF
-          spawn sudo bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
-          expect "Would you like to customize the panel settings? (If not, random settings will be applied) [y/n]:"
-          send "y\r"
-          expect "Please set up your username:"
-          send "admin\r"
-          expect "Please set up your password:"
-          send "admin\r"
-          expect "Please set up the panel port:"
-          send "2053\r"
+          spawn sudo ./install.sh
+          expect {
+            "*customize the panel settings?*" { send "y\r" }
+          }
+          expect {
+            "*set up your username:*" { send "admin\r" }
+          }
+          expect {
+            "*set up your password:*" { send "admin\r" }
+          }
+          expect {
+            "*set up the panel port:*" { send "2053\r" }
+          }
           expect eof
           EOF
 
