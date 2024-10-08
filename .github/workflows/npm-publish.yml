@@ -41,10 +41,10 @@ jobs:
           WEB_BASE_PATH=$(grep "WebBasePath" install_output.log | sed 's/.*WebBasePath: //')
           echo "WebBasePath: $WEB_BASE_PATH"
 
-          CLEAN_WEB_BASE_PATH=$(echo "$WEB_BASE_PATH" | tr -d '\n')
+          CLEAN_WEB_BASE_PATH=$(echo "$WEB_BASE_PATH" | tr -d '\n' | tr -d '\r')
           ESCAPED_WEB_BASE_PATH=$(printf '%s\n' "$CLEAN_WEB_BASE_PATH" | sed 's/[\/&]/\\&/g' | sed 's/"/\\"/g')
           sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$ESCAPED_WEB_BASE_PATH\";|g" tests/utils/api.ts
-          
+
           cat tests/utils/api.ts
         
       - name: Setup Node.js
