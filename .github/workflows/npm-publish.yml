@@ -38,7 +38,7 @@ jobs:
           )
 
           echo "$output"
-          webBasePath=$(echo "$output" | grep -oP 'webBasePath: \K\S+' | sed 's|^/||;s|/$||')
+          webBasePath=$(echo "$output" | grep -oP 'webBasePath: \K\S+')
           sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$webBasePath\";|g" tests/utils/api.ts
 
           echo "Web Path: $webBasePath"
