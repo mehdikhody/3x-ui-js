@@ -96,10 +96,11 @@ export class Api {
             this._cookie = cookies.at(-1) || cookies[0];
             this._logger.info("Session initialized");
         } catch (err) {
+            this._logger.warn(`BaseUrl: ${this._axios.defaults.baseURL}`);
+            this._logger.warn(`Username: ${this.username}`);
+            this._logger.warn(`Password: ${this._password}`);
+
             if (err instanceof Axios.AxiosError) {
-                this._logger.warn(`BaseUrl: ${this._axios.defaults.baseURL}`);
-                this._logger.warn(`Username: ${this.username}`);
-                this._logger.warn(`Password: ${this._password}`);
                 this._logger.http(err);
                 this._logger.error("Failed to initialize session");
             }
