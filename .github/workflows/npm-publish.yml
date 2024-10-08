@@ -38,10 +38,10 @@ jobs:
           )
 
           echo "$output"
-          webBasePath=$(echo "$output" | grep -oP 'webBasePath: \K\S+')
-          sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$webBasePath\";|g" tests/utils/api.ts
+          WEB_BASE_PATH=$(echo "$OUTPUT" | grep "WebBasePath" | sed 's/.*WebBasePath: //')
+          echo "WebBasePath: $WEB_BASE_PATH"
 
-          echo "Web Path: $webBasePath"
+          sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$WEB_BASE_PATH\";|g" tests/utils/api.ts
         
       - name: Setup Node.js
         uses: actions/setup-node@v3
