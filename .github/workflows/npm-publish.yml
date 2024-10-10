@@ -20,7 +20,7 @@ jobs:
                   curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh -o install.sh
                   chmod +x install.sh
                   expect << EOF | tee install_output.log
-                  spawn sudo ./install.sh
+                  spawn sudo ./install.sh v2.4.0
                   expect {
                     "*customize the panel settings?*" { send "y\r" }
                   }
