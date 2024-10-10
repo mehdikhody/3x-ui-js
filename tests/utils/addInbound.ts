@@ -8,7 +8,7 @@ let port = randomInt(10000, 90000);
 export const addInbound = async (prefix: string) => {
     port++;
     const remark = `${prefix} - ${randomBytes(5).toString("hex")}`;
-    const email = faker.internet.email();
+    const email = faker.internet.email().toLowerCase();
 
     return api.addInbound({
         enable: true,

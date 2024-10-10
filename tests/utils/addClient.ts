@@ -4,7 +4,7 @@ import { faker } from "@faker-js/faker";
 import { api } from "./api";
 
 export const addClient = async (inboundId: number) => {
-    const email = faker.internet.email();
+    const email = faker.internet.email().toLowerCase();
     const id = randomUUID();
     const expiryTime = Date.now() + randomInt(-864000, 31104000);
     const enable = randomInt(0, 10) > 3;
