@@ -175,12 +175,16 @@ export class Api {
         this._logger.debug(`Inbound ${inbound.id} saved in cache.`);
         this._cache.set(`inbound:${inbound.id}`, inbound);
 
-        const hasSettings = "settings" in inbound;
-        if (!hasSettings || "clients" in inbound.settings === false) {
-            this._logger.debug(`Inbound ${inbound.id} has no clients.`);
+        if (typeof inbound.settings !== "object") {
+            this._logger.debug(`Inbound ${inbound.id} has no settings.`);
             return;
         }
 
+        const settingKeys = Object.keys(inbound.settings);
+        const hasClients = settingKeys.includes("clients");
+        if (!hasClients) return;
+
+        // @ts-ignore
         inbound.settings.clients?.forEach((client) => {
             let clientId: string = client.email || "";
             if ("id" in client) clientId = client.id;
