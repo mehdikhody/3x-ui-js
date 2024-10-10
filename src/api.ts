@@ -9,6 +9,7 @@ import NodeCache from "node-cache";
 import Axios from "axios";
 import urlJoin from "url-join";
 import qs from "qs";
+import { stringifySettings } from "$lib/utils/stringifySettings";
 
 export class Api {
     readonly host: string;
@@ -277,9 +278,9 @@ export class Api {
             this._logger.debug(`Adding inbound ${options.remark}.`);
             const inbound = await this.post<Inbound>("/add", {
                 ...options,
-                settings: JSON.stringify(options.settings),
-                streamSettings: JSON.stringify(options.streamSettings),
-                sniffing: JSON.stringify(options.sniffing),
+                settings: stringifySettings(options.settings),
+                streamSettings: stringifySettings(options.streamSettings),
+                sniffing: stringifySettings(options.sniffing),
             });
             this._logger.info(`Inbound ${inbound.remark} added.`);
             this.flushCache();
