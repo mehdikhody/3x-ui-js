@@ -1,13 +1,14 @@
 import type { ClientOptions } from "3x-ui";
 import { randomBytes, randomUUID, randomInt } from "crypto";
+import { faker } from "@faker-js/faker";
 import { api } from "./api";
 
 let port = randomInt(10000, 90000);
 
 export const addInbound = async (prefix: string) => {
     port++;
-    const remark = `${prefix} - ${randomBytes(10).toString("hex")}`;
-    const email = `${randomBytes(10).toString("hex")}@example.com`;
+    const remark = `${prefix} - ${randomBytes(5).toString("hex")}`;
+    const email = faker.internet.email();
 
     return api.addInbound({
         enable: true,

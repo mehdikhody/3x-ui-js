@@ -1,9 +1,10 @@
 import type { ClientOptions } from "3x-ui";
-import { randomUUID, randomBytes, randomInt } from "crypto";
+import { randomUUID, randomInt } from "crypto";
+import { faker } from "@faker-js/faker";
 import { api } from "./api";
 
 export const addClient = async (inboundId: number) => {
-    const email = `${randomBytes(10).toString("hex")}@example.com`;
+    const email = faker.internet.email();
     const id = randomUUID();
     const expiryTime = Date.now() + randomInt(-864000, 31104000);
     const enable = randomInt(0, 10) > 3;
