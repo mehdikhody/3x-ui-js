@@ -1,9 +1,12 @@
 import { XuiApi } from "3x-ui";
-import urlJoin from "url-join";
-import { removeColorsAndUnwantedChars } from "./removeColorsAndUnwantedChars";
+import { removeColors } from "./removeColors";
+import server from "../server.json";
 
-const webBasePath = "O3dyelGTRl";
-const baseUrl = "http://admin:admin@localhost:2053";
-export const url = urlJoin(baseUrl, removeColorsAndUnwantedChars(webBasePath));
-export const api = new XuiApi(url);
+const user = removeColors(server.username);
+const pass = removeColors(server.password);
+const port = removeColors(server.port);
+const webBasePath = removeColors(server.webBasePath);
+
+const uri = `http://${user}:${pass}@localhost:${port}/${webBasePath}`;
+export const api = new XuiApi(uri);
 api.debug = true;

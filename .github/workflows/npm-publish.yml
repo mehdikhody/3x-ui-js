@@ -22,31 +22,35 @@ jobs:
                   expect << EOF | tee install_output.log
                   spawn sudo ./install.sh v2.4.0
                   expect {
-                    "*customize the panel settings?*" { send "y\r" }
+                    "*(If not, random settings will be applied)*" { send "n\r" }
                   }
-                  expect {
-                    "*set up your username:*" { send "admin\r" }
-                  }
-                  expect {
-                    "*set up your password:*" { send "admin\r" }
-                  }
-                  expect {
-                    "*set up the panel port:*" { send "2053\r" }
-                  }
+
                   expect eof
                   EOF
 
-                  cat tests/utils/api.ts
-
-                  WEB_BASE_PATH=$(grep "WebBasePath" install_output.log | sed 's/.*WebBasePath: //')
-                  echo "WebBasePath: $WEB_BASE_PATH"
+                  USERNAME=$(grep "Username:" install_output.log | sed 's/.*Username: //')
+                  PASSWORD=$(grep "Password:" install_output.log | sed 's/.*Password: //')
+                  PORT=$(grep "Port:" install_output.log | sed 's/.*Port: //')
+                  WEB_BASE_PATH=$(grep "WebBasePath:" install_output.log | sed 's/.*WebBasePath: //')
 
                   CLEAN_WEB_BASE_PATH=$(echo "$WEB_BASE_PATH" | tr -d '\n' | tr -d '\r' | sed 's/\x1b\[[0-9;]*m//g')
-                  ESCAPED_WEB_BASE_PATH=$(printf '%s\n' "$CLEAN_WEB_BASE_PATH" | sed 's/[\/&]/\\&/g' | sed 's/"/\\"/g')
-                  sed -i "s|const webBasePath = \".*\";|const webBasePath = \"$ESCAPED_WEB_BASE_PATH\";|g" tests/utils/api.ts
+                  CLEAN_USERNAME=$(echo "$USERNAME" | tr -d '\n' | tr -d '\r' | sed 's/\x1b\[[0-9;]*m//g')
+                  CLEAN_PASSWORD=$(echo "$PASSWORD" | tr -d '\n' | tr -d '\r' | sed 's/\x1b\[[0-9;]*m//g')
+                  CLEAN_PORT=$(echo "$PORT" | tr -d '\n' | tr -d '\r' | sed 's/\x1b\[[0-9;]*m//g')
 
-                  cat tests/utils/api.ts
+                  JSON_OUTPUT=$(cat <<EOF
+                  {
+                    "username": "$CLEAN_USERNAME",
+                    "password": "$CLEAN_PASSWORD",
+                    "port": "$CLEAN_PORT",
+                    "webBasePath": "$CLEAN_WEB_BASE_PATH"
+                  }
+                  EOF
+                  )
 
+                  echo "$JSON_OUTPUT" > tests/server.json
+
+                  cat tests/server.json
                   sudo x-ui status
 
             - name: Setup Node.js
