@@ -20,7 +20,7 @@ jobs:
                   curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh -o install.sh
                   chmod +x install.sh
                   expect << EOF | tee install_output.log
-                  spawn sudo ./install.sh v2.4.0
+                  spawn sudo ./install.sh
                   expect {
                     "*(If not, random settings will be applied)*" { send "n\r" }
                   }
