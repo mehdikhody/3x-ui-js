@@ -22,7 +22,7 @@ jobs:
                   expect << EOF | tee install_output.log
                   spawn sudo ./install.sh
                   expect {
-                    "*(If not, random settings will be applied)*" { send "n\r" }
+                    "*(If not, a random port will be applied)*" { send "n\r" }
                   }
 
                   expect eof
