@@ -258,7 +258,6 @@ export class Api {
         try {
             this._logger.debug(`Fetching inbound ${id}...`);
             const inbound = await this.get<Inbound>(`/get/${id}`);
-            this._cache.set(`inbound:${id}`, inbound);
             this._logger.debug(`Inbound ${id} loaded from API.`);
             const result = parseInbound(inbound);
             this.cacheInbound(result);
