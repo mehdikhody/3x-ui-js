@@ -232,13 +232,16 @@ export class Api {
         try {
             this._logger.debug("Fetching inbounds...");
             const inbounds = await this.get<Inbound[]>("/list");
-            this._cache.set("inbounds", inbounds);
             this._logger.debug("Inbounds loaded from API.");
-            return inbounds.map((inbound) => {
-                const result = parseInbound(inbound);
-                this.cacheInbound(result);
-                return result;
+
+            const result = inbounds.map((inbound) => {
+                const _result = parseInbound(inbound);
+                this.cacheInbound(_result);
+                return _result;
             });
+
+            this._cache.set("inbounds", inbounds);
+            return result;
         } catch (err) {
             this._logger.error("Failed to fetch inbounds.");
             return [];
