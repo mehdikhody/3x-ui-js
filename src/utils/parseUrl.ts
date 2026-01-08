@@ -1,7 +1,7 @@
-import urljoin from "url-join";
+import urlJoin from "url-join";
 
-export const decodeUri = (uri: string) => {
-    const url = new URL(encodeURI(uri));
+export const parseUrl = (uri: string) => {
+    const url = new URL(uri);
     const protocol = url.protocol.slice(0, -1);
     const host = url.hostname;
     const defaultPort = protocol === "https" ? 443 : 80;
@@ -9,7 +9,7 @@ export const decodeUri = (uri: string) => {
     const path = url.pathname;
     const username = decodeURIComponent(url.username);
     const password = decodeURIComponent(url.password);
-    const endpoint = urljoin(url.origin, path);
+    const endpoint = urlJoin(url.origin, path);
 
     return {
         protocol,

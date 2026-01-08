@@ -29,9 +29,9 @@
         "tsx": "^4.6.2",
         "typescript": "^5.3.3",
         "vite-tsconfig-paths": "^5.0.1",
-        "vitest": "^2.1.2",
-        "xray-zod": "^1.0.0",
-        "zod": "^3.23.8"
+        "vitest": "^4.0.16",
+        "xray-zod": "^1.1.0",
+        "zod": "^3.25.76"
     },
     "dependencies": {
         "async-mutex": "^0.5.0",

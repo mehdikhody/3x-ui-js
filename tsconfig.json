@@ -3,19 +3,18 @@
     "include": ["src", "tests"],
     "compilerOptions": {
         "strict": true,
-        "module": "ESNext",
-        "target": "ESNext",
-        "moduleResolution": "Node",
+        "module": "nodenext",
+        "target": "esnext",
+        "moduleResolution": "nodenext",
         "outDir": "build",
         "rootDirs": ["src"],
         "resolveJsonModule": true,
         "esModuleInterop": true,
         "declaration": true,
         "lib": ["ESNext"],
-        "baseUrl": ".",
         "paths": {
-            "3x-ui": ["src/index.ts"],
-            "$lib/*": ["src/lib/*"]
+            "3x-ui": ["./src/index.ts"],
+            "3x-ui/*": ["./src/*"]
         }
     }
 }
