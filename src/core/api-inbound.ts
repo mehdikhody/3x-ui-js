@@ -31,7 +31,7 @@ export class API_Inbound {
         }
 
         this.#api.logger.debug(`Fetching inbound ${id}...`);
-        const inbound = await this.#api.get<Inbound>(`/get/${id}`);
+        const inbound = await this.#api.get<Inbound>(`/inbounds/get/${id}`);
 
         this.#api.cache.set("inbound", inbound);
         return inbound;
@@ -39,7 +39,7 @@ export class API_Inbound {
 
     async addInbound(options: InboundInput) {
         this.#api.logger.debug(`Adding inbound ${options.remark}...`);
-        const inbound = await this.#api.post<Inbound>("/add", {
+        const inbound = await this.#api.post<Inbound>("/inbounds/add", {
             ...options,
             settings: JSON.stringify(options.settings),
             streamSettings: JSON.stringify(options.streamSettings),
