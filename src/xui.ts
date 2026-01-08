@@ -22,7 +22,7 @@ export class XUI {
         this.path = this.#api.path;
         this.username = this.#api.username;
 
-        this.inbound = new API_Inbound(this.#api);
+        this.inbound = new API_Inbound(this, this.#api);
     }
 
     /**
