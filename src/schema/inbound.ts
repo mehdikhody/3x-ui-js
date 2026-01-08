@@ -18,7 +18,6 @@ export const InboundSchema = InboundInputSchema.and(
         down: z.number(),
         total: z.number(),
         allTime: z.number(),
-
         lastTrafficResetTime: z.number(),
     }),
 );
