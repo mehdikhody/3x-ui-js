@@ -5,43 +5,34 @@ import { ProxyAgent } from "proxy-agent";
 import qs from "qs";
 import urlJoin from "url-join";
 import winston from "winston";
-import { createLogger } from "../utils/createLogger.js";
-import { parseUrl } from "../utils/parseUrl.js";
+import { URI } from "./base/uri.js";
+import { createLogger } from "./utils/createLogger.js";
+import { XUI } from "./xui.js";
 
 export class API {
-    readonly host: string;
-    readonly port: number;
-    readonly protocol: string;
-    readonly path: string;
-    readonly username: string;
-    readonly #password: string;
-    readonly mutex: Mutex;
-    readonly cache: NodeCache;
-    readonly logger: winston.Logger;
-    readonly axios: AxiosInstance;
-
+    readonly #uri: URI;
+    readonly #mutex: Mutex;
+    readonly #axios: AxiosInstance;
     #session: string;
 
-    constructor(uri: string) {
-        const schema = parseUrl(uri);
-        this.protocol = schema.protocol;
-        this.host = schema.host;
-        this.port = schema.port;
-        this.path = schema.path;
-        this.username = schema.username;
-        this.#password = schema.password;
+    readonly cache: NodeCache;
+    readonly logger: winston.Logger;
 
-        this.mutex = new Mutex();
+    constructor(xui: XUI, uri: URI) {
+        this.#uri = uri;
+        this.#session = "";
+
+        this.#mutex = new Mutex();
 
         this.cache = new NodeCache();
         this.cache.options.stdTTL = 10;
 
-        this.logger = createLogger(`[API][${this.host}]`);
+        this.logger = createLogger(`[XUI][${this.#uri.host}]`);
         this.logger.silent = true;
 
         this.#session = "";
-        this.axios = Axios.create({
-            baseURL: schema.endpoint,
+        this.#axios = Axios.create({
+            baseURL: this.#uri.endpoint,
             proxy: false,
             httpAgent: new ProxyAgent(),
             httpsAgent: new ProxyAgent(),
@@ -53,13 +44,13 @@ export class API {
         if (this.#session) return;
 
         const cerdentials = qs.stringify({
-            username: this.username,
-            password: this.#password,
+            username: this.#uri.username,
+            password: this.#uri.password,
         });
 
         try {
             this.logger.http("POST /login");
-            const res = await this.axios.post("/login", cerdentials, {
+            const res = await this.#axios.post("/login", cerdentials, {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
@@ -82,13 +73,13 @@ export class API {
 
     async get<T>(path: string, params?: unknown) {
         await this.#login();
-        const release = await this.mutex.acquire();
+        const release = await this.#mutex.acquire();
 
         try {
             path = urlJoin("/panel/api", path);
 
             this.logger.http(`GET ${path}`);
-            const res = await this.axios.get(path, {
+            const res = await this.#axios.get(path, {
                 data: qs.stringify(params),
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -113,13 +104,13 @@ export class API {
 
     async post<T>(path: string, params?: unknown) {
         await this.#login();
-        const release = await this.mutex.acquire();
+        const release = await this.#mutex.acquire();
 
         try {
             path = urlJoin("/panel/api", path);
 
             this.logger.debug(`POST ${path}`);
-            const res = await this.axios.post(path, params, {
+            const res = await this.#axios.post(path, params, {
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",

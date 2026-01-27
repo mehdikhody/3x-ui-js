@@ -1,5 +1,8 @@
-import { API_Inbound } from "./core/api-inbound.js";
-import { API } from "./core/api.js";
+import { API } from "./api.js";
+import { URI } from "./base/uri.js";
+import { ClientAPI } from "./client.js";
+import { InboundAPI } from "./inbound.js";
+import { ServerAPI } from "./server.js";
 
 export class XUI {
     readonly protocol: string;
@@ -7,27 +10,28 @@ export class XUI {
     readonly port: number;
     readonly path: string;
     readonly username: string;
+
+    readonly #uri: URI;
     readonly #api: API;
 
-    readonly inbound: API_Inbound;
+    readonly server: ServerAPI;
+    readonly inbound: InboundAPI;
+    readonly client: ClientAPI;
 
-    /**
-     * @param uri uri
-     */
     constructor(uri: string) {
-        this.#api = new API(uri);
-        this.protocol = this.#api.protocol;
-        this.host = this.#api.host;
-        this.port = this.#api.port;
-        this.path = this.#api.path;
-        this.username = this.#api.username;
+        this.#uri = new URI(uri);
+        this.protocol = this.#uri.protocol;
+        this.host = this.#uri.host;
+        this.port = this.#uri.port;
+        this.path = this.#uri.path;
+        this.username = this.#uri.username;
 
-        this.inbound = new API_Inbound(this, this.#api);
+        this.#api = new API(this, this.#uri);
+        this.server = new ServerAPI(this, this.#api);
+        this.inbound = new InboundAPI(this, this.#api);
+        this.client = new ClientAPI(this, this.#api);
     }
 
-    /**
-     * Log level
-     */
     set log_level(level: "error" | "warn" | "info" | "http" | "debug" | "silent") {
         if (level === "silent") {
             this.#api.logger.silent = true;
@@ -39,18 +43,12 @@ export class XUI {
         this.#api.logger.level = level;
     }
 
-    /**
-     * Cache time to live in seconds
-     */
     set cache_ttl(ttl: number) {
         this.#api.cache.options.stdTTL = ttl;
         this.#api.logger.info(`TTL set to ${ttl === 0 ? "infinity" : ttl}s`);
     }
 
-    /**
-     * Flush cached data
-     */
-    flush() {
+    cacheFlush() {
         this.#api.cache.flushStats();
         this.#api.cache.flushAll();
     }
